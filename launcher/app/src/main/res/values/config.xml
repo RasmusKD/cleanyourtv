@@ -353,6 +353,10 @@
     <!-- Grid rows left visible under the dock on the home screen. 0 = dock sits at the very bottom. Tiles shrink if
          the dock, its title and this many rows would not otherwise fit the screen height. -->
     <integer name="rows_below_dock">0</integer>
+    <!-- With dock_row and rows_below_dock 0: the grid rows under the dock stay invisible while focus is on the dock
+         and fade in once it moves down to them, so Home shows only the dock until you ask for more. Ignored with
+         single_row or rows_below_dock above 0. Off by default. Also "hide_rows_until_focus": true in a theme. -->
+    <bool name="hide_rows_until_focus">false</bool>
 
     <!-- The focused dock app's name in large type above the dock. false keeps only the glow, which leaves room
          for bigger tiles when rows_below_dock is 2 or 3. -->

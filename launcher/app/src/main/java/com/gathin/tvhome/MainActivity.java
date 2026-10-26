@@ -272,6 +272,9 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
     private PopupWindow openPopup;
     /** Reorder mode is on (top-bar button). */
     private boolean reordering;
+    /** config hide_rows_until_focus, and whether the rows under the dock are hidden right now. */
+    private boolean hideRowsUntilFocus;
+    private boolean rowsTucked;
     /** Key of the tile being carried in reorder mode, or null. */
     private String movingKey;
     /** Tile order when reorder mode started, to save only when something moved. */
@@ -609,6 +612,8 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
         // tvOS layout: push the dock row towards the bottom of the screen, leaving room for
         // rows_below_dock grid rows under it; the rest of the grid stays below until you press Down.
         int rowsBelowDock = cfg.rowsBelowDock;
+        hideRowsUntilFocus = RowsUntilFocus.applies(cfg.hideRowsUntilFocus, dockRow, singleRow, rowsBelowDock);
+        rowsTucked = hideRowsUntilFocus;
         grid.addOnLayoutChangeListener((v, l, t, r, b, ol, ot, or, ob) -> {
             int h = b - t;
             // Item height follows the tile size, which follows the columns and the rows that must fit (AppAdapter.tileWidthPx).
@@ -1480,7 +1485,22 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
             return pos != RecyclerView.NO_POSITION && movingKey.equals(adapter.keyAt(pos)) ? 1f : 0.45f;
         }
         if (dockEditSlot >= 0 && pos >= 0 && pos < COLUMNS && pos != dockEditSlot) return 0.45f;
+        if (rowsTucked && !reordering && pos >= COLUMNS) return 0f;
         return 1f;
+    }
+
+    /** hide_rows_until_focus: the rows under the dock are invisible while focus is on the dock, and fade in once it leaves. */
+    private void tuckRows(boolean tuck) {
+        if (tuck == rowsTucked) return;
+        rowsTucked = tuck;
+        for (int i = 0; i < grid.getChildCount(); i++) {
+            View item = grid.getChildAt(i);
+            int pos = grid.getChildAdapterPosition(item);
+            if (pos < COLUMNS) continue;
+            float alpha = tileAlpha(pos);
+            if (reducedMotion) item.setAlpha(alpha);
+            else item.animate().alpha(alpha).setDuration(180).start();
+        }
     }
 
     /** Ends the mode and saves the order if it changed since the mode started. */
@@ -1626,6 +1646,7 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
 
     @Override
     public void onTileFocused(int position, View card) {
+        if (hideRowsUntilFocus) tuckRows(position < COLUMNS);
         lastFocused = position;
         lastFocusedKey = adapter.keyAt(position);
         // Focus restored before the first layout (cold start): the tile has no size yet, and the glass
