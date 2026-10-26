@@ -57,3 +57,4 @@ fits the rules; keys from before the rule sit on its wanted list until a screens
 | `inputs_connected_only` | <img src="switches/inputs_connected_only.jpg" width="320" alt="inputs_connected_only on a TV"> |
 | `icon_tiles` | <img src="switches/icon_tiles.jpg" width="320" alt="icon_tiles: an app drawn from its icon in the grid on a TV"> |
 | `hide_rows_until_focus` | <img src="switches/hide_rows_until_focus.jpg" width="320" alt="hide_rows_until_focus on a TV"> |
+| `developer_options_row` | <img src="switches/developer_options_row.jpg" width="320" alt="developer_options_row on a TV"> |

@@ -34,6 +34,7 @@
     <string name="home_settings">Vælg standard-startskærm</string>
     <string name="launcher_settings">Launcher-indstillinger</string>
     <string name="native_settings">Producentindstillinger</string>
+    <string name="developer_options">Udviklerindstillinger</string>
     <string name="columns_label">Apps pr. række</string>
     <string name="rows_below_dock_label">Rækker under docken</string>
     <string name="dock_opacity_label">Docken: gennemsigtighed</string>

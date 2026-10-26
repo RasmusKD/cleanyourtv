@@ -28,6 +28,7 @@
     <string name="home_settings_help">Valitse alkuperäinen kotinäkymä, jos haluat lopettaa CleanYourTV:n käytön kotinäkymänä, tai CleanYourTV palataksesi siihen. Alkuperäisen käynnistimen on oltava käytössä ja television on tarjottava kotinäkymän valinta. Jos käynnistin on poistettu käytöstä, aja ensin palautusskripti.</string>
     <string name="launcher_settings">Käynnistimen asetukset</string>
     <string name="native_settings">Valmistajan asetukset</string>
+    <string name="developer_options">Kehittäjäasetukset</string>
     <string name="columns_label">Sovelluksia rivillä</string>
     <string name="dock_opacity_label">Telakkapalkin peittävyys</string>
     <string name="animations_state">Animaatiot: %1$s</string>

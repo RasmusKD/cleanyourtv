@@ -52,6 +52,7 @@
     <string name="card_state_new_label">Nowa nazwa</string>
     <string name="launcher_settings">Ustawienia ekranu głównego</string>
     <string name="native_settings">Ustawienia producenta</string>
+    <string name="developer_options">Opcje programisty</string>
     <string name="columns_label">Aplikacji w rzędzie</string>
     <string name="dock_opacity_label">Krycie paska docka</string>
     <string name="animations_state">Animacje: %1$s</string>

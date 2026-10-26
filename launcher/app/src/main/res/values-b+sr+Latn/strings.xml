@@ -33,6 +33,7 @@
     <string name="home_key_description">Dugme Home na daljinskom otvara ovaj početni ekran.</string>
     <string name="launcher_settings">Podešavanja početnog ekrana</string>
     <string name="native_settings">Podešavanja proizvođača</string>
+    <string name="developer_options">Opcije za programere</string>
     <string name="columns_label">Aplikacija po redu</string>
     <string name="dock_opacity_label">Prozirnost trake doka</string>
     <string name="animations_state">Animacije: %1$s</string>

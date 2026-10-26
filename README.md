@@ -642,7 +642,8 @@ and a wallpaper.
   `launcher_settings_button` a click opens those instead and the menu leaves the row out), **Native settings**
   where the TV ships a settings app of its own beside Android's - Xiaomi China, TCL/FFALCON and Fire OS are
   in `settings_fallback_components` - because that app holds pages Android's has no row for, such as
-  Xiaomi's Account & Security with the ADB switch; **Module cards** with `module_cards`; **Edit dock** with
+  Xiaomi's Account & Security with the ADB switch; **Developer options** with `developer_options_row`, once
+  developer options are unlocked on the TV; **Module cards** with `module_cards`; **Edit dock** with
   `dock_row`; **Reorder apps**; and **Restart…** while `HomeKeyService` runs, which opens the system power menu
   (a launcher may not restart the TV itself). The launcher's own page has these rows, top to bottom:
   - **Reorder apps**, only with `launcher_settings_button`: OK picks an app up, the arrows move it, Back

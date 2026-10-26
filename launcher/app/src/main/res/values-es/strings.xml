@@ -43,6 +43,7 @@
     <string name="dream_name">Reloj</string>
     <string name="launcher_settings">Ajustes del lanzador</string>
     <string name="native_settings">Ajustes del fabricante</string>
+    <string name="developer_options">Opciones de desarrollador</string>
     <string name="columns_label">Aplicaciones por fila</string>
     <string name="dock_opacity_label">Opacidad de la barra del dock</string>
     <string name="animations_state">Animaciones: %1$s</string>

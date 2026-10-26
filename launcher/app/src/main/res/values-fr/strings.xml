@@ -52,6 +52,7 @@
     <string name="card_state_new_label">Nouveau nom</string>
     <string name="launcher_settings">Paramètres du lanceur</string>
     <string name="native_settings">Paramètres du fabricant</string>
+    <string name="developer_options">Options pour les développeurs</string>
     <string name="columns_label">Applications par ligne</string>
     <string name="dock_opacity_label">Opacité de la barre du dock</string>
     <string name="animations_state">Animations : %1$s</string>

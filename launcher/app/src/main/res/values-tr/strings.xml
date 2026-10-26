@@ -52,6 +52,7 @@
     <string name="card_state_new_label">Yeni ad</string>
     <string name="launcher_settings">Başlatıcı ayarları</string>
     <string name="native_settings">Üretici ayarları</string>
+    <string name="developer_options">Geliştirici seçenekleri</string>
     <string name="columns_label">Satır başına uygulama</string>
     <string name="dock_opacity_label">Dock bandı opaklığı</string>
     <string name="animations_state">Animasyonlar: %1$s</string>

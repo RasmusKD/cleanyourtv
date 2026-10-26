@@ -27,6 +27,7 @@
 
     <string name="launcher_settings">การตั้งค่าหน้าหลัก</string>
     <string name="native_settings">การตั้งค่าของผู้ผลิต</string>
+    <string name="developer_options">ตัวเลือกสำหรับนักพัฒนาซอฟต์แวร์</string>
     <string name="columns_label">แอปต่อแถว</string>
     <string name="dock_opacity_label">ความทึบของแถบด็อก</string>
     <string name="animations_state">ภาพเคลื่อนไหว: %1$s</string>

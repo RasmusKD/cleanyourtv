@@ -269,6 +269,11 @@
     <!-- A direct Launcher settings action instead of TV Settings in the header (or top_menu).
          Off by default; a theme can set "launcher_settings_button": true. -->
     <bool name="launcher_settings_button">false</bool>
+    <!-- A Developer options row in the menu that holding OK on Settings opens, once developer options have been
+         unlocked on the TV (Settings.Global.DEVELOPMENT_SETTINGS_ENABLED is 1): it opens the TV's Developer options,
+         where USB debugging is switched on. Off by default: the menu has no extra row. Also
+         "developer_options_row": true in a theme's config.json. -->
+    <bool name="developer_options_row">false</bool>
     <!-- The dock band as light frosted glass, like the Inputs, Wi-Fi and Settings pills, so a sky or wallpaper shows
          through it. false (the default) keeps the solid near-black band, or the cinematic shelf's dark glass. Can
          also be set with "dock_glass": true in a theme's config.json. -->

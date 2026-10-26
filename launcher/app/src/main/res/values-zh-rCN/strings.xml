@@ -8,6 +8,7 @@
     <string name="home_settings_help">选择原始桌面即可关闭简洁桌面的默认桌面状态；需要切回时选择简洁桌面。原始桌面必须仍处于启用状态；若安装脚本已停用它，请先用恢复脚本启用。电视还须提供系统桌面选择页。</string>
     <string name="launcher_settings">简洁桌面设置</string>
     <string name="native_settings">原生设置</string>
+    <string name="developer_options">开发者选项</string>
     <string name="columns_label">每行应用数量</string>
     <string name="rows_below_dock_label">程序坞下方行数</string>
     <string name="wallpaper_label">壁纸</string>
