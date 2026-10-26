@@ -36,6 +36,8 @@ SCREENSHOT_WANTED = {
     "tile_menu", "top_menu", "vpn_app", "wallpaper", "wallpaper_captions", "wallpaper_dim",
     "wallpaper_moods", "wallpaper_order", "wallpaper_true_color", "wifi_label_width",
     "wifi_status_color",
+    # This fork: remote-button keys with nothing on screen to photograph (FORK.md).
+    "tcl_t_key", "vendor_key_log",
 }
 
 
