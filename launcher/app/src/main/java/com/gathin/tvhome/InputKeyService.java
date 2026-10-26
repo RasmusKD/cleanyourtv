@@ -31,6 +31,8 @@ public class InputKeyService extends AccessibilityService {
     private boolean consumeVolumeKeys;
     /** Stops key filtering while a game controller is connected; null unless gamepad_passthrough and key_filter. */
     private GamepadPassthrough gamepads;
+    /** Opens app_keys for vendor buttons from the system log; null unless vendor_key_log. */
+    private KeyLogWatcher keyLog;
 
     @Override
     protected void onServiceConnected() {
@@ -51,6 +53,12 @@ public class InputKeyService extends AccessibilityService {
         if (config.gamepadPassthrough && config.keyFilter && gamepads == null) {
             gamepads = new GamepadPassthrough(this);
             gamepads.start();
+        }
+        // vendor_key_log, off by default: vendor buttons (keycode 1000 and up) never reach onKeyEvent, but the
+        // window manager's log sees them
+        if (config.vendorKeyLog && keyLog == null) {
+            keyLog = new KeyLogWatcher(this, KeyLogWatcher.followed(appKeys));
+            keyLog.start();
         }
     }
 
@@ -88,6 +96,7 @@ public class InputKeyService extends AccessibilityService {
     @Override
     public void onDestroy() {
         if (gamepads != null) gamepads.stop();
+        if (keyLog != null) keyLog.stop();
         if (consumeVolumeKeys) VolumeKeys.stop();
         super.onDestroy();
     }

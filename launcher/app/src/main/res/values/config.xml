@@ -198,6 +198,15 @@
          to omit. -->
     <string-array name="app_keys" translatable="false">
     </string-array>
+    <!-- app_keys entries for vendor buttons (keycode 1000 and up) that reach only the focused window, so that not
+         even InputKeyService sees them (the Netflix and T buttons on a TCL BeyondTV, Android TV 9): the system
+         window manager logs every key it intercepts, whatever has focus, and with this on InputKeyService follows
+         that log and opens the entry on the key's release. Not polling and not a service of its own: one blocking
+         logcat read on a daemon thread inside the accessibility service that is already bound, restarted after 2
+         seconds if logcat ends, and only while this is true. Needs INPUT_KEY_SERVICE=1 and READ_LOGS, granted with
+         VENDOR_KEY_LOG=1 (-VendorKeyLog on Windows) in build-and-install; without the grant the watcher does not
+         start. Off by default. Also "vendor_key_log": true in a theme's config.json. -->
+    <bool name="vendor_key_log">false</bool>
 
     <!-- Package of the stock launcher, for TVs whose firmware turns it back on after it was disabled. XGIMI's
          com.xgimi.xrmservice does, on every one of its remote keys, power included (docs/TROUBLESHOOTING.md).

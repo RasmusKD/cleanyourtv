@@ -1268,6 +1268,8 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
     @Override
     public boolean dispatchKeyEvent(KeyEvent event) {
         // Vendor keys (TCL Netflix button, 4062) never reach the key services, only the focused window.
+        // KeyLogWatcher (vendor_key_log) opens the vendor buttons it follows, on Home too
+        if (KeyLogWatcher.covers(event.getKeyCode())) return true;
         if (event.getKeyCode() >= 1000 && RemoteKeys.handle(this, event, homeAppKeys.get(event.getKeyCode()), null)) return true;
         if (handleSettingsKey(event)) return true;
         if (tileMenuEnabled && !reordering && openPopup == null && cardPrompt == null

@@ -58,3 +58,4 @@ fits the rules; keys from before the rule sit on its wanted list until a screens
 | `icon_tiles` | <img src="switches/icon_tiles.jpg" width="320" alt="icon_tiles: an app drawn from its icon in the grid on a TV"> |
 | `hide_rows_until_focus` | <img src="switches/hide_rows_until_focus.jpg" width="320" alt="hide_rows_until_focus on a TV"> |
 | `developer_options_row` | <img src="switches/developer_options_row.jpg" width="320" alt="developer_options_row on a TV"> |
+| `vendor_key_log` | <img src="switches/vendor_key_log.jpg" width="320" alt="vendor_key_log on a TV"> |
