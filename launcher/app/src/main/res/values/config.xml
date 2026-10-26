@@ -198,6 +198,13 @@
          to omit. -->
     <string-array name="app_keys" translatable="false">
     </string-array>
+    <!-- The T button on TCL remotes (keycode 4020) runs its app_keys entry from any app, not only on Home. TCL's
+         key service (com.tcl.keycustomfunctionservice) starts the action com.tcl.partnercustomizer.tkey on every
+         press, whichever app is in front, while the key itself reaches only the focused window. On, Home turns
+         on TKeyActivity, which answers that action, and leaves the 4020 key to it so one press opens the app once.
+         Off by default: with TCL's own handler still installed, the action would otherwise offer a chooser. Needs a
+         4020 entry in app_keys. Also "tcl_t_key": true in a theme's config.json. -->
+    <bool name="tcl_t_key">false</bool>
 
     <!-- Package of the stock launcher, for TVs whose firmware turns it back on after it was disabled. XGIMI's
          com.xgimi.xrmservice does, on every one of its remote keys, power included (docs/TROUBLESHOOTING.md).

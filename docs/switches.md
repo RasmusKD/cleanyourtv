@@ -54,3 +54,4 @@ fits the rules; keys from before the rule sit on its wanted list until a screens
 | `home_long_press_home` | <img src="switches/home_long_press_home.jpg" width="320" alt="home_long_press_home on a TV"> |
 | `vpn_pill` | <img src="switches/vpn_pill.jpg" width="320" alt="vpn_pill on a TV"> |
 | `power_on_home_always` | <img src="switches/power_on_home_always.jpg" width="320" alt="power_on_home_always on a TV"> |
+| `tcl_t_key` | <img src="switches/tcl_t_key.jpg" width="320" alt="tcl_t_key on a TV"> |

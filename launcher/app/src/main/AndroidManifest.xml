@@ -121,6 +121,21 @@
                 <category android:name="android.intent.category.DEFAULT" />
             </intent-filter>
         </activity>
+        <!-- T button on TCL remotes: TCL's key service starts this action on every press, from any app. Disabled
+             here and switched on by MainActivity only while tcl_t_key is true (config.xml or a theme), so a TCL
+             set that still has com.tcl.partnercustomizer enabled never gets a chooser. -->
+        <activity
+            android:name=".TKeyActivity"
+            android:exported="true"
+            android:enabled="false"
+            android:excludeFromRecents="true"
+            android:noHistory="true"
+            android:theme="@android:style/Theme.NoDisplay">
+            <intent-filter>
+                <action android:name="com.tcl.partnercustomizer.tkey" />
+                <category android:name="android.intent.category.DEFAULT" />
+            </intent-filter>
+        </activity>
         <!-- Remote Settings button panel (settings_key_panel); own task so the app behind stays put.
              No screenOrientation: a translucent activity may not request one on Android 8.0 (API 26),
              which throws IllegalStateException in onCreate (#1122); a TV is landscape anyway. -->

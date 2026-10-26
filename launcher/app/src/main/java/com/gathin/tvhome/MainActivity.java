@@ -382,6 +382,8 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
     };
 
     private java.util.Map<Integer, String> homeAppKeys = java.util.Collections.emptyMap();
+    /** config tcl_t_key: TKeyActivity answers the T button, so Home leaves its keycode alone. */
+    private boolean tclTKey;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -397,7 +399,9 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
         // off the list (needs WRITE_SECURE_SETTINGS, granted by build-and-install with RESTORE_KEY_SERVICES=1).
         if (cfg.restoreKeyServices) ServiceRepair.restore(this);
         settingsRevision = settingsRevision();
-        applyViewInputsHandler(cfg.handleViewInputs);
+        applyComponent(InputsRequestActivity.class, cfg.handleViewInputs);
+        tclTKey = cfg.tclTKey;
+        applyComponent(TKeyActivity.class, tclTKey);
         settingsKeycodes = cfg.settingsKeycodes;
         settingsKeyPanel = cfg.settingsKeyPanel;
         COLUMNS = cfg.columns;
@@ -844,12 +848,13 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
     }
 
     /**
-     * handle_view_inputs: switch InputsRequestActivity, the VIEW_INPUTS handler, on or off. It is disabled in the
-     * manifest, so a TV with its own input picker never sees it; only the sets that need it turn it on. Written
-     * only when the state differs, so an ordinary start does not touch the package manager.
+     * Switches a handler activity that is disabled in the manifest on or off: InputsRequestActivity, the VIEW_INPUTS
+     * handler (handle_view_inputs), and TKeyActivity, TCL's T button action (tcl_t_key). A TV that does not need
+     * one never sees it as a candidate. Written only when the state differs, so an ordinary start does not touch
+     * the package manager.
      */
-    private void applyViewInputsHandler(boolean on) {
-        ComponentName handler = new ComponentName(this, InputsRequestActivity.class);
+    private void applyComponent(Class<?> component, boolean on) {
+        ComponentName handler = new ComponentName(this, component);
         PackageManager pm = getPackageManager();
         int want = on ? PackageManager.COMPONENT_ENABLED_STATE_ENABLED : PackageManager.COMPONENT_ENABLED_STATE_DEFAULT;
         if (pm.getComponentEnabledSetting(handler) != want) {
@@ -1257,6 +1262,8 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
     @Override
     public boolean dispatchKeyEvent(KeyEvent event) {
         // Vendor keys (TCL Netflix button, 4062) never reach the key services, only the focused window.
+        // tcl_t_key: TKeyActivity runs the T button's entry, started by TCL's key service on the same press
+        if (TKeyActivity.answers(tclTKey, event.getKeyCode(), homeAppKeys)) return true;
         if (event.getKeyCode() >= 1000 && RemoteKeys.handle(this, event, homeAppKeys.get(event.getKeyCode()), null)) return true;
         if (handleSettingsKey(event)) return true;
         if (tileMenuEnabled && !reordering && openPopup == null && cardPrompt == null
