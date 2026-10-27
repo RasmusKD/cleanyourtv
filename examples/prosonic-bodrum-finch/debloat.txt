@@ -25,6 +25,16 @@
 # - Never opened: com.mediatek.tv.factory, mediatek.factorymenu.ui (factory menus).
 #
 # Owner's choices: Viu, Crunchyroll, YouTube and TV Bro stay. Chromecast built-in stays.
+#
+# Also disabled by hand on this set, after the launcher took Home: com.google.android.tvlauncher (set-home-activity
+# said Success but Home stayed with it until it was disabled) and com.google.android.tvrecommendations.
+#
+# Netflix and Prime buttons: MediaTek's hotkey service (com.mediatek.tv.service) receives both as global buttons and
+# starts Netflix / Prime Video itself; with them disabled the start fails in the log ("result code=-91"/"-92").
+# The launcher remaps them with app_keys "launch:com.netflix.ninja:<app>" and
+# "launch:com.amazon.amazonvideo.livingroom:<app>", vendor_key_log on and key_filter off: any key-filtering helper
+# kills the held-volume ramp here, and filtered volume keys never reach the helper, so consume_volume_keys cannot
+# bring it back. Android 14 asks "Allow access to all device logs?" over Home once per boot; allow it.
 
 # Vestel telemetry, logging and "cleaner"
 com.vestel.vestelreporter

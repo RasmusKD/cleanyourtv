@@ -106,7 +106,7 @@
          "key_filter"). Some firmware (TCL Google TV on Android 12) drops key auto-repeat once ANY service
          filters keys, so long-pressing volume only steps once: set false and the service keeps running but
          stops filtering, which brings repeat back at the price of the remote buttons below doing nothing. -->
-    <bool name="key_filter">true</bool>
+    <bool name="key_filter">false</bool>
 
     <!-- With key_filter on, true makes HomeKeyService and InputKeyService stop filtering keys while a game
          controller is connected, so games see its buttons (Steam Link with an Xbox controller on a TCL G07
@@ -197,8 +197,8 @@
          where the firmware hands KEYCODE_GUIDE (172) to the stock launcher and no app ever receives it. Leave empty
          to omit. -->
     <string-array name="app_keys" translatable="false">
-        <item>scan:104:com.viu.viuapp</item>
-        <item>scan:504:com.crunchyroll.crunchyroid</item>
+        <item>launch:com.netflix.ninja:com.viu.viuapp</item>
+        <item>launch:com.amazon.amazonvideo.livingroom:com.crunchyroll.crunchyroid</item>
     </string-array>
     <!-- app_keys entries for vendor buttons (keycode 1000 and up) that reach only the focused window, so that not
          even InputKeyService sees them (the Netflix and T buttons on a TCL BeyondTV, Android TV 9): the system
@@ -208,7 +208,7 @@
          seconds if logcat ends, and only while this is true. Needs INPUT_KEY_SERVICE=1 and READ_LOGS, granted with
          VENDOR_KEY_LOG=1 (-VendorKeyLog on Windows) in build-and-install; without the grant the watcher does not
          start. Off by default. Also "vendor_key_log": true in a theme's config.json. -->
-    <bool name="vendor_key_log">false</bool>
+    <bool name="vendor_key_log">true</bool>
     <!-- The T button on TCL remotes (keycode 4020) runs its app_keys entry from any app, not only on Home. TCL's
          key service (com.tcl.keycustomfunctionservice) starts the action com.tcl.partnercustomizer.tkey on every
          press, whichever app is in front, while the key itself reaches only the focused window. On, Home turns

@@ -55,9 +55,9 @@ public class InputKeyService extends AccessibilityService {
             gamepads.start();
         }
         // vendor_key_log, off by default: vendor buttons (keycode 1000 and up) never reach onKeyEvent, but the
-        // window manager's log sees them
+        // window manager's log sees them; "launch:" entries follow refused starts of disabled apps the same way
         if (config.vendorKeyLog && keyLog == null) {
-            keyLog = new KeyLogWatcher(this, KeyLogWatcher.followed(appKeys));
+            keyLog = new KeyLogWatcher(this, KeyLogWatcher.followed(appKeys), KeyLogWatcher.launches(config.appKeys));
             keyLog.start();
         }
     }
