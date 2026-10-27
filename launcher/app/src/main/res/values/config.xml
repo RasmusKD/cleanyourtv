@@ -17,10 +17,10 @@
 
     <!-- Apps pinned to the dock row at the bottom, in this order. Missing apps are skipped. -->
     <string-array name="dock_apps">
-        <item>com.netflix.ninja</item>
-        <item>com.amazon.amazonvideo.livingroom</item>
+        <item>com.viu.viuapp</item>
+        <item>com.crunchyroll.crunchyroid</item>
         <item>com.google.android.youtube.tv</item>
-        <item>in.startv.hotstar</item>
+        <item>com.phlox.tvwebbrowser</item>
     </string-array>
     <!-- With fewer dock_apps than columns (or a dock app that is not installed), the free dock slots take
          the first grid apps, so the dock never shows a gap. false leaves them empty (#162); a theme can
@@ -289,7 +289,7 @@
          unlocked on the TV (Settings.Global.DEVELOPMENT_SETTINGS_ENABLED is 1): it opens the TV's Developer options,
          where USB debugging is switched on. Off by default: the menu has no extra row. Also
          "developer_options_row": true in a theme's config.json. -->
-    <bool name="developer_options_row">false</bool>
+    <bool name="developer_options_row">true</bool>
     <!-- The dock band as light frosted glass, like the Inputs, Wi-Fi and Settings pills, so a sky or wallpaper shows
          through it. false (the default) keeps the solid near-black band, or the cinematic shelf's dark glass. Can
          also be set with "dock_glass": true in a theme's config.json. -->
@@ -348,7 +348,7 @@
          sleeping device has) and the AV jacks fold behind a "More inputs" row that expands the rest. An HDMI row
          whose state the TV cannot be trusted with stays. Off by default: every input is listed. Can also be set
          with "inputs_connected_only" in a theme. -->
-    <bool name="inputs_connected_only">false</bool>
+    <bool name="inputs_connected_only">true</bool>
     <!-- Names under every tile, not only the focused one: unfocused names stay dimmed, the focused one is full white.
          With dock_row the band grows down to hold the dock's names too. -->
     <bool name="always_show_names">false</bool>
@@ -369,7 +369,7 @@
     <!-- Hold OK on a tile opens a small menu: Move (picks the tile up for reordering), Remove from Home (only with
          app_library) and App info. false keeps the old behaviour: holding OK opens the app's App info page.
          Can also be set with "tile_menu": true in a theme's config.json. -->
-    <bool name="tile_menu">false</bool>
+    <bool name="tile_menu">true</bool>
 
     <!-- Grid rows left visible under the dock on the home screen. 0 = dock sits at the very bottom. Tiles shrink if
          the dock, its title and this many rows would not otherwise fit the screen height. -->
@@ -377,7 +377,7 @@
     <!-- With dock_row and rows_below_dock 0: the grid rows under the dock stay invisible while focus is on the dock
          and fade in once it moves down to them, so Home shows only the dock until you ask for more. Ignored with
          single_row or rows_below_dock above 0. Off by default. Also "hide_rows_until_focus": true in a theme. -->
-    <bool name="hide_rows_until_focus">false</bool>
+    <bool name="hide_rows_until_focus">true</bool>
 
     <!-- The focused dock app's name in large type above the dock. false keeps only the glow, which leaves room
          for bigger tiles when rows_below_dock is 2 or 3. -->
@@ -396,7 +396,7 @@
     <bool name="show_home_settings_shortcut">false</bool>
 
     <!-- Installed launchable apps, including ordinary Android apps. Also settable in config.json. -->
-    <bool name="app_library">false</bool>
+    <bool name="app_library">true</bool>
     <!-- Every app tile is its icon on a card tinted from that icon, name only under the focused tile,
          instead of each app's own banner. Off by default; a theme can set "uniform_tiles": true. -->
     <bool name="uniform_tiles">false</bool>
