@@ -197,6 +197,8 @@
          where the firmware hands KEYCODE_GUIDE (172) to the stock launcher and no app ever receives it. Leave empty
          to omit. -->
     <string-array name="app_keys" translatable="false">
+        <item>scan:104:com.viu.viuapp</item>
+        <item>scan:504:com.crunchyroll.crunchyroid</item>
     </string-array>
     <!-- app_keys entries for vendor buttons (keycode 1000 and up) that reach only the focused window, so that not
          even InputKeyService sees them (the Netflix and T buttons on a TCL BeyondTV, Android TV 9): the system
