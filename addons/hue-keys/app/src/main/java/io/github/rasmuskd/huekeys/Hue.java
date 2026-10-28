@@ -20,12 +20,15 @@ import java.util.TimeZone;
  * without clearing it, and no longer counts. When the sensors cannot be read, nothing is changed either.
  */
 final class Hue {
-    enum Action { TOGGLE, BRIGHTER, DIMMER, MOVIE }
+    enum Action { TOGGLE, BRIGHTER, DIMMER, LOW, HALF, FULL }
 
     static final String WATCHPOST_ID = "watchpost-armed";
     static final long WATCHPOST_FRESH_MS = 20 * 60 * 1000L;
     static final int BRI_STEP = 32;
-    static final int MOVIE_BRI = 30;
+    /** Hue brightness runs 1 to 254: 25, 50 and 100 percent. */
+    static final int LOW_BRI = 64;
+    static final int HALF_BRI = 127;
+    static final int FULL_BRI = 254;
 
     private Hue() {
     }
@@ -37,7 +40,9 @@ final class Hue {
             case "Toggle": return Action.TOGGLE;
             case "Brighter": return Action.BRIGHTER;
             case "Dimmer": return Action.DIMMER;
-            case "Movie": return Action.MOVIE;
+            case "Low": return Action.LOW;
+            case "Half": return Action.HALF;
+            case "Full": return Action.FULL;
             default: return null;
         }
     }
@@ -48,9 +53,15 @@ final class Hue {
             case TOGGLE: return "{\"on\":" + !anyOn + "}";
             case BRIGHTER: return "{\"on\":true,\"bri_inc\":" + BRI_STEP + "}";
             case DIMMER: return "{\"bri_inc\":-" + BRI_STEP + "}";
-            case MOVIE: return "{\"on\":true,\"bri\":" + MOVIE_BRI + "}";
+            case LOW: return level(LOW_BRI);
+            case HALF: return level(HALF_BRI);
+            case FULL: return level(FULL_BRI);
             default: throw new IllegalArgumentException(String.valueOf(action));
         }
+    }
+
+    private static String level(int bri) {
+        return "{\"on\":true,\"bri\":" + bri + "}";
     }
 
     /** Whether GET /sensors shows watchpost armed now: its flag set and updated within WATCHPOST_FRESH_MS. */

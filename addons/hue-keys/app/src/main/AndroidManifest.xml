@@ -23,7 +23,9 @@
         <activity-alias android:name=".Toggle" android:targetActivity=".HueKeyActivity" android:exported="true" />
         <activity-alias android:name=".Brighter" android:targetActivity=".HueKeyActivity" android:exported="true" />
         <activity-alias android:name=".Dimmer" android:targetActivity=".HueKeyActivity" android:exported="true" />
-        <activity-alias android:name=".Movie" android:targetActivity=".HueKeyActivity" android:exported="true" />
+        <activity-alias android:name=".Low" android:targetActivity=".HueKeyActivity" android:exported="true" />
+        <activity-alias android:name=".Half" android:targetActivity=".HueKeyActivity" android:exported="true" />
+        <activity-alias android:name=".Full" android:targetActivity=".HueKeyActivity" android:exported="true" />
 
         <!-- install.sh writes the bridge address, app key and room here with `content write`, so the key never
              sits on a command line. Write-only, one file name, and only the ADB shell may call it. -->

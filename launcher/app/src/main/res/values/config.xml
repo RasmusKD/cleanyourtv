@@ -208,9 +208,9 @@
         <item>hold:KEYCODE_CHANNEL_DOWN:io.github.luyzfernando08.sleeptimer/.BedtimeActivity</item>
         <item>hold:KEYCODE_PAGE_DOWN:io.github.luyzfernando08.sleeptimer/.BedtimeActivity</item>
         <item>KEYCODE_PROG_RED:io.github.rasmuskd.huekeys/.Toggle</item>
-        <item>KEYCODE_PROG_GREEN:io.github.rasmuskd.huekeys/.Movie</item>
-        <item>KEYCODE_PROG_YELLOW:io.github.rasmuskd.huekeys/.Brighter</item>
-        <item>KEYCODE_PROG_BLUE:io.github.rasmuskd.huekeys/.Dimmer</item>
+        <item>KEYCODE_PROG_GREEN:io.github.rasmuskd.huekeys/.Low</item>
+        <item>KEYCODE_PROG_YELLOW:io.github.rasmuskd.huekeys/.Half</item>
+        <item>KEYCODE_PROG_BLUE:io.github.rasmuskd.huekeys/.Full</item>
     </string-array>
     <!-- app_keys entries for vendor buttons (keycode 1000 and up) that reach only the focused window, so that not
          even InputKeyService sees them (the Netflix and T buttons on a TCL BeyondTV, Android TV 9): the system

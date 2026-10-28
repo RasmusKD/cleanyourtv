@@ -34,4 +34,4 @@ if [ -n "$CONFIG" ]; then
   tv --push "$CONFIG" "$STAGE" >/dev/null
   tv "content write --uri content://$PKG.config/config.json < $STAGE; rm -f $STAGE; echo config pushed"
 fi
-echo "Installed. Map remote buttons to io.github.rasmuskd.huekeys/.Toggle, .Brighter, .Dimmer or .Movie in app_keys."
+echo "Installed. Map remote buttons to io.github.rasmuskd.huekeys/.Toggle, .Brighter, .Dimmer, .Low, .Half or .Full in app_keys."

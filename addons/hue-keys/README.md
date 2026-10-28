@@ -1,6 +1,6 @@
 # Hue Keys
 
-Remote buttons for one Philips Hue room: on/off, brighter, dimmer and a dim "movie" level, sent straight to the
+Remote buttons for one Philips Hue room: on/off, brighter, dimmer and fixed levels of 25, 50 and 100 %, sent straight to the
 Hue bridge on the home network. No screen and no launcher tile: each action is an activity alias that a remote
 button's `app_keys` entry starts, which sends one request and finishes.
 
@@ -9,7 +9,9 @@ button's `app_keys` entry starts, which sends one request and finishes.
 | `io.github.rasmuskd.huekeys/.Toggle` | The room on if every light is off, otherwise off |
 | `io.github.rasmuskd.huekeys/.Brighter` | On, and brightness up by 32 of 254 |
 | `io.github.rasmuskd.huekeys/.Dimmer` | Brightness down by 32 |
-| `io.github.rasmuskd.huekeys/.Movie` | On at brightness 30 |
+| `io.github.rasmuskd.huekeys/.Low` | On at 25 % |
+| `io.github.rasmuskd.huekeys/.Half` | On at 50 % |
+| `io.github.rasmuskd.huekeys/.Full` | On at 100 % |
 
 ```xml
 <item>KEYCODE_PROG_RED:io.github.rasmuskd.huekeys/.Toggle</item>

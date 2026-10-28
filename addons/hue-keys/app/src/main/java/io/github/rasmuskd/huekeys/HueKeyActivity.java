@@ -21,7 +21,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 /**
- * Started by a remote button through one of its aliases (.Toggle, .Brighter, .Dimmer, .Movie): finishes at once,
+ * Started by a remote button through one of its aliases (.Toggle, .Brighter, .Dimmer, .Low, .Half, .Full): finishes at once,
  * with no window (Theme.NoDisplay), and sends the request on a background thread. One thread, so presses in a
  * quick row reach the bridge in order.
  */

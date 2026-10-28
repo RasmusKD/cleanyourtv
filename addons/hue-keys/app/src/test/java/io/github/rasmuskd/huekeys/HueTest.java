@@ -17,7 +17,7 @@ public class HueTest {
 
     @Test public void aliasesNameTheirAction() {
         assertEquals(Hue.Action.TOGGLE, Hue.action("io.github.rasmuskd.huekeys.Toggle"));
-        assertEquals(Hue.Action.MOVIE, Hue.action("io.github.rasmuskd.huekeys.Movie"));
+        assertEquals(Hue.Action.HALF, Hue.action("io.github.rasmuskd.huekeys.Half"));
         assertNull(Hue.action("io.github.rasmuskd.huekeys.HueKeyActivity"));
     }
 
@@ -25,6 +25,8 @@ public class HueTest {
         assertEquals("{\"on\":false}", Hue.body(Hue.Action.TOGGLE, true));
         assertEquals("{\"on\":true}", Hue.body(Hue.Action.TOGGLE, false));
         assertEquals("{\"bri_inc\":-32}", Hue.body(Hue.Action.DIMMER, true));
+        assertEquals("{\"on\":true,\"bri\":64}", Hue.body(Hue.Action.LOW, false));
+        assertEquals("{\"on\":true,\"bri\":254}", Hue.body(Hue.Action.FULL, true));
     }
 
     @Test public void aFreshFlagIsArmed() throws Exception {
