@@ -18,7 +18,8 @@ button's `app_keys` entry starts, which sends one request and finishes.
 ```
 
 In the launcher's `app_keys` (config.xml or a theme). Like every `app_keys` entry, the buttons work on Home, and
-everywhere only where the launcher's key services filter keys. [Remote Daemon](../remote-daemon/) runs them from
+everywhere only where the launcher's key services filter keys. The aliases need `WRITE_SECURE_SETTINGS`, so other
+apps cannot switch the lights: the launcher has it when installed with `BACKLIGHT_KEYS=1`. [Remote Daemon](../remote-daemon/) runs them from
 every app, and with the TV in standby: `GREEN tap app io.github.rasmuskd.huekeys/.Low`.
 
 ## Setup
@@ -37,21 +38,26 @@ echo '{"bridge": "<bridge ip>", "key": "...", "room": "1"}' > backup/hue-keys.js
 TV_HOST=<tv ip> addons/hue-keys/install.sh backup/hue-keys.json
 ```
 
-The app takes the file into its own storage and deletes it.
+install.sh adds `"pin"`, the SHA-256 of the bridge's HTTPS certificate, read from the bridge on this network
+(give one in the file to skip that). The app speaks only HTTPS to the bridge and trusts only that certificate,
+so the key never crosses the network in clear. It takes the file into its own storage and deletes it, and
+replaces bridge, pin, key and room only all together. A bridge that gets a new certificate (a reset) needs a fresh
+install with the file.
 
 ## Sharing the lights with an alarm
 
 A surveillance or presence-simulation script on the same bridge can take the lights over: while a CLIP generic
 flag sensor with unique id `watchpost-armed` is set, and was updated in the last 20 minutes, no button changes a
 light (the TV shows a short note instead). The script sets the flag when it arms, refreshes it on every run and
-clears it when it stops; a script that stops without clearing it loses the lights after 20 minutes. When the
-sensors cannot be read, the buttons change nothing either.
+clears it when it stops; a script that stops without clearing it loses the lights after 20 minutes. A set flag
+whose time cannot be read, or that lies ahead of the TV's clock, counts as armed. When the sensors cannot be
+read, the buttons change nothing either.
 
 ## Permissions
 
 | Permission | Why |
 |---|---|
-| `INTERNET` | The Hue bridge's local API over plain HTTP on the home network, and nothing else. |
+| `INTERNET` | The Hue bridge's local API over HTTPS, pinned to its certificate, and nothing else. |
 
 `ConfigProvider` takes the pushed file and only the ADB shell can use it (it requires `WRITE_SECURE_SETTINGS`).
 Backups are off. No background service, accounts or libraries.

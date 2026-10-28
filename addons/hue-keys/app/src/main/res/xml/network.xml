@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- The Hue bridge's local API answers plain HTTP on the home network; its HTTPS certificate is self-signed. -->
+<!-- Plain HTTP would put the bridge's app key on the home network: the app speaks HTTPS to the bridge only, pinned to
+     the certificate install.sh recorded (Pin.java). -->
 <network-security-config>
-    <base-config cleartextTrafficPermitted="true" />
+    <base-config cleartextTrafficPermitted="false" />
 </network-security-config>

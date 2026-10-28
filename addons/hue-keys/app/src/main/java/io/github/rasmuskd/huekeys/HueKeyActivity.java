@@ -14,11 +14,12 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.net.HttpURLConnection;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+
+import javax.net.ssl.HttpsURLConnection;
 
 /**
  * Started by a remote button through one of its aliases (.Toggle, .Brighter, .Dimmer, .Low, .Half, .Full): finishes at once,
@@ -47,18 +48,19 @@ public class HueKeyActivity extends Activity {
             return;
         }
         try {
-            if (Hue.watchpostArmed(request("GET", cfg.url("/sensors"), null), System.currentTimeMillis())) {
+            Pin pin = new Pin(cfg.pin);
+            if (Hue.watchpostArmed(request(pin, "GET", cfg.url("/sensors"), null), System.currentTimeMillis())) {
                 new Handler(Looper.getMainLooper()).post(() ->
                         Toast.makeText(app, "Watchpost is on: the lights are its", Toast.LENGTH_SHORT).show());
                 return;
             }
             boolean anyOn = false;
             if (action == Hue.Action.TOGGLE) {
-                JSONObject room = new JSONObject(request("GET", cfg.url("/groups/" + cfg.room), null));
+                JSONObject room = new JSONObject(request(pin, "GET", cfg.url("/groups/" + cfg.room), null));
                 JSONObject state = room.optJSONObject("state");
                 anyOn = state != null && state.optBoolean("any_on");
             }
-            String answer = request("PUT", cfg.url("/groups/" + cfg.room + "/action"), Hue.body(action, anyOn));
+            String answer = request(pin, "PUT", cfg.url("/groups/" + cfg.room + "/action"), Hue.body(action, anyOn));
             if (Hue.refused(answer)) Log.w(TAG, "bridge refused " + action);
         } catch (Exception e) {
             // the sensors could not be read or the bridge is unreachable: no light changes
@@ -66,9 +68,11 @@ public class HueKeyActivity extends Activity {
         }
     }
 
-    private static String request(String method, String url, String body) throws IOException {
-        HttpURLConnection http = (HttpURLConnection) new URL(url).openConnection();
+    static String request(Pin pin, String method, String url, String body) throws IOException {
+        HttpsURLConnection http = (HttpsURLConnection) new URL(url).openConnection();
         try {
+            http.setSSLSocketFactory(pin.socketFactory());
+            http.setHostnameVerifier(Pin.PINNED);
             http.setRequestMethod(method);
             http.setConnectTimeout(TIMEOUT_MS);
             http.setReadTimeout(TIMEOUT_MS);
@@ -86,6 +90,8 @@ public class HueKeyActivity extends Activity {
                 for (int n; (n = in.read(buf)) > 0; ) text.write(buf, 0, n);
                 return text.toString("UTF-8");
             }
+        } catch (java.security.GeneralSecurityException e) {
+            throw new IOException(e);
         } finally {
             http.disconnect();
         }

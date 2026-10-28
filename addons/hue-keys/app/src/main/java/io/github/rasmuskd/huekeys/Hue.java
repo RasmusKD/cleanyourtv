@@ -64,7 +64,11 @@ final class Hue {
         return "{\"on\":true,\"bri\":" + bri + "}";
     }
 
-    /** Whether GET /sensors shows watchpost armed now: its flag set and updated within WATCHPOST_FRESH_MS. */
+    /**
+     * Whether GET /sensors shows watchpost armed now: its flag set, and not provably stale. Only a flag last updated
+     * more than WATCHPOST_FRESH_MS in the past counts as left behind by a watchpost that stopped; an unreadable stamp
+     * or one further ahead than that (TV and bridge clocks disagree) cannot prove it, so the lights stay its.
+     */
     static boolean watchpostArmed(String sensorsJson, long nowMs) throws JSONException {
         JSONObject sensors = new JSONObject(sensorsJson);
         for (Iterator<String> ids = sensors.keys(); ids.hasNext(); ) {
@@ -73,7 +77,7 @@ final class Hue {
             JSONObject state = sensor.optJSONObject("state");
             if (state == null || !state.optBoolean("flag")) return false;
             long updated = utcMillis(state.optString("lastupdated"));
-            return updated > 0 && nowMs - updated < WATCHPOST_FRESH_MS;
+            return updated == 0 || nowMs - updated < WATCHPOST_FRESH_MS;
         }
         return false;
     }
@@ -98,6 +102,7 @@ final class Hue {
     static long utcMillis(String stamp) {
         SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss", Locale.ROOT);
         format.setTimeZone(TimeZone.getTimeZone("UTC"));
+        format.setLenient(false); // "2026-13-45T99:00:00" is unreadable, not rolled into some other date
         try {
             return format.parse(stamp).getTime();
         } catch (ParseException | NullPointerException e) {

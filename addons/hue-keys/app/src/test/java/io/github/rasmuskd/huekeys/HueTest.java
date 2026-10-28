@@ -36,7 +36,13 @@ public class HueTest {
     @Test public void aClearedOrStaleFlagIsNot() throws Exception {
         assertFalse(Hue.watchpostArmed(sensors("false", "2026-10-28T19:59:00"), NOW));
         assertFalse(Hue.watchpostArmed(sensors("true", "2026-10-28T19:30:00"), NOW));
-        assertFalse(Hue.watchpostArmed(sensors("true", "none"), NOW));
+    }
+
+    /** A set flag whose age cannot be read, or that lies ahead of the TV's clock, cannot be proven stale. */
+    @Test public void aSetFlagOfUnknownAgeIsArmed() throws Exception {
+        assertTrue(Hue.watchpostArmed(sensors("true", "none"), NOW));
+        assertTrue(Hue.watchpostArmed(sensors("true", "2026-13-45T99:00:00"), NOW));
+        assertTrue(Hue.watchpostArmed(sensors("true", "2026-10-29T08:00:00"), NOW));
     }
 
     @Test public void noWatchpostSensorIsNotArmed() throws Exception {

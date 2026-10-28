@@ -29,9 +29,24 @@ case "$OUT" in *Success*) ;; *) echo "ERROR: pm install failed" >&2; exit 1 ;; e
 
 # The bridge and its app key go in as a file through the app's provider (only the ADB shell may write it), so the
 # key never sits on a command line on the TV. The app reads it once and deletes it.
+# The app talks HTTPS to the bridge and trusts only the certificate recorded here: "pin" is its SHA-256, read from
+# the bridge on this network now unless config.json already carries one.
 if [ -n "$CONFIG" ]; then
+  PINNED=$(mktemp)
+  trap 'rm -f "$PINNED"' EXIT
+  "$PY" -I -c '
+import hashlib, json, socket, ssl, sys
+c = json.load(open(sys.argv[1], encoding="utf-8-sig"))
+if not c.get("pin"):
+    ctx = ssl.create_default_context()
+    ctx.check_hostname, ctx.verify_mode = False, ssl.CERT_NONE
+    with socket.create_connection((c["bridge"], 443), timeout=5) as s, ctx.wrap_socket(s) as t:
+        c["pin"] = hashlib.sha256(t.getpeercert(True)).hexdigest()
+json.dump(c, open(sys.argv[2], "w"))
+' "$CONFIG" "$PINNED"
   STAGE=/data/local/tmp/hue-keys-config.json
-  tv --push "$CONFIG" "$STAGE" >/dev/null
+  tv --push "$PINNED" "$STAGE" >/dev/null
   tv "content write --uri content://$PKG.config/config.json < $STAGE; rm -f $STAGE; echo config pushed"
 fi
-echo "Installed. Map remote buttons to io.github.rasmuskd.huekeys/.Toggle, .Brighter, .Dimmer, .Low, .Half or .Full in app_keys."
+echo "Installed. The aliases need WRITE_SECURE_SETTINGS: Remote Daemon's commands hold it; a launcher needs BACKLIGHT_KEYS=1."
+echo "Map remote buttons to io.github.rasmuskd.huekeys/.Toggle, .Brighter, .Dimmer, .Low, .Half or .Full in app_keys."
