@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Build Hue Keys, install it on the TV and, optionally, push its Hue bridge address, app key and room.
-#   TV_HOST=<tv ip> addons/hue-keys/install.sh [config.json]   # {"bridge": "192.168.1.19", "key": "...", "room": "1"}
+#   TV_HOST=<tv ip> addons/hue-keys/install.sh [config.json]   # {"bridge": "<bridge ip>", "key": "...", "room": "1"}
 set -euo pipefail
 CONFIG="${1:-}"
 if [ -n "$CONFIG" ]; then

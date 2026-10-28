@@ -33,7 +33,7 @@ and keep the `username` it answers. The room is the group id from `GET /api/<key
 file outside the repo and install:
 
 ```bash
-echo '{"bridge": "192.168.1.19", "key": "...", "room": "1"}' > backup/hue-keys.json
+echo '{"bridge": "<bridge ip>", "key": "...", "room": "1"}' > backup/hue-keys.json
 TV_HOST=<tv ip> addons/hue-keys/install.sh backup/hue-keys.json
 ```
 
