@@ -49,6 +49,12 @@ It builds the daemon (Go, for 32-bit ARM) and the starter app, puts the daemon a
 boot through the TV's own ADB port (127.0.0.1:5555) with that key. To change the buttons, edit the config and
 run the install again.
 
+The daemon lives in adbd's process group, and Android ends that whole group whenever adbd restarts: switching
+network debugging off and on, `adb tcpip` or `adb usb` all stop the daemon until the next boot, or until
+`tools/tv.py 'am start -n io.github.rasmuskd.remotedaemon/.StartActivity'` starts it again (seen on the Prosonic
+BODRUM: `adb tcpip 5555` ended it). The same rule is why network debugging cannot be switched off once the daemon
+runs: closing the port restarts adbd.
+
 ## Full mode
 
 `install.sh <config> full` makes the daemon take the remote over and pass its buttons on through a `uinput`
