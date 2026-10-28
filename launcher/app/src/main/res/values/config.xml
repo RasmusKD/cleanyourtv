@@ -291,7 +291,8 @@
     <!-- A Developer options row in the menu that holding OK on Settings opens, once developer options have been
          unlocked on the TV (Settings.Global.DEVELOPMENT_SETTINGS_ENABLED is 1): it opens the TV's Developer options,
          where USB debugging is switched on. Off by default: the menu has no extra row. Also
-         "developer_options_row": true in a theme's config.json. -->
+         "developer_options_row": true in a theme's config.json. On in this branch, for the Prosonic setup in
+         examples/prosonic-bodrum-finch. -->
     <bool name="developer_options_row">true</bool>
     <!-- The dock band as light frosted glass, like the Inputs, Wi-Fi and Settings pills, so a sky or wallpaper shows
          through it. false (the default) keeps the solid near-black band, or the cinematic shelf's dark glass. Can
@@ -350,7 +351,7 @@
          standby (some TVs, TCL among them, report an empty HDMI port as connected-standby, the same state a
          sleeping device has) and the AV jacks fold behind a "More inputs" row that expands the rest. An HDMI row
          whose state the TV cannot be trusted with stays. Off by default: every input is listed. Can also be set
-         with "inputs_connected_only" in a theme. -->
+         with "inputs_connected_only" in a theme. On in this branch, for the Prosonic setup. -->
     <bool name="inputs_connected_only">true</bool>
     <!-- Names under every tile, not only the focused one: unfocused names stay dimmed, the focused one is full white.
          With dock_row the band grows down to hold the dock's names too. -->
@@ -371,7 +372,7 @@
     <string name="wallpaper_moods" translatable="false"></string>
     <!-- Hold OK on a tile opens a small menu: Move (picks the tile up for reordering), Remove from Home (only with
          app_library) and App info. false keeps the old behaviour: holding OK opens the app's App info page.
-         Can also be set with "tile_menu": true in a theme's config.json. -->
+         Can also be set with "tile_menu": true in a theme's config.json. On in this branch, for the Prosonic setup. -->
     <bool name="tile_menu">true</bool>
 
     <!-- Grid rows left visible under the dock on the home screen. 0 = dock sits at the very bottom. Tiles shrink if
@@ -379,7 +380,8 @@
     <integer name="rows_below_dock">0</integer>
     <!-- With dock_row and rows_below_dock 0: the grid rows under the dock stay invisible while focus is on the dock
          and fade in once it moves down to them, so Home shows only the dock until you ask for more. Ignored with
-         single_row or rows_below_dock above 0. Off by default. Also "hide_rows_until_focus": true in a theme. -->
+         single_row or rows_below_dock above 0. Off by default. Also "hide_rows_until_focus": true in a theme.
+         On in this branch, for the Prosonic setup. -->
     <bool name="hide_rows_until_focus">true</bool>
 
     <!-- The focused dock app's name in large type above the dock. false keeps only the glow, which leaves room
@@ -398,7 +400,8 @@
          Off by default because the chooser is also available from launcher settings. -->
     <bool name="show_home_settings_shortcut">false</bool>
 
-    <!-- Installed launchable apps, including ordinary Android apps. Also settable in config.json. -->
+    <!-- Installed launchable apps, including ordinary Android apps. Also settable in config.json. On in this branch,
+         for the Prosonic setup. -->
     <bool name="app_library">true</bool>
     <!-- Every app tile is its icon on a card tinted from that icon, name only under the focused tile,
          instead of each app's own banner. Off by default; a theme can set "uniform_tiles": true. -->

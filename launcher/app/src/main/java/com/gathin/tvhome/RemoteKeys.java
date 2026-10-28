@@ -260,6 +260,24 @@ final class RemoteKeys {
             // Without its DOWN (the service started while the button was held), the event's own down time will do.
             open.accept(target(app, holdApp, eventTime - (sawDown ? press.downAt : downTime)));
         }
+
+        /** Every press still down opens nothing: no pending hold fires, and its UP opens neither app. */
+        void endAll() {
+            for (Press press : buttons.values()) {
+                if (press.downAt <= press.upAt) continue;
+                if (press.hold != null) timer.cancel(press.hold);
+                press.hold = null;
+                press.fired = true;
+            }
+        }
+    }
+
+    /**
+     * Called when Home pauses or a key service goes away: a press begun there must not open an app later, in
+     * whatever is in front by then. Main thread only, like {@link #handle}.
+     */
+    static void endPresses() {
+        if (presses != null) presses.endAll();
     }
 
     /** The app a mapped key opens: its hold entry after HOLD_MS, otherwise its normal one. */

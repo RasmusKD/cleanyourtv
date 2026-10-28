@@ -149,6 +149,7 @@ public class HomeKeyService extends AccessibilityService {
         }
         if (gamepads != null) gamepads.stop();
         if (consumeVolumeKeys) VolumeKeys.stop();
+        RemoteKeys.endPresses();
         super.onDestroy();
     }
 
@@ -436,5 +437,6 @@ public class HomeKeyService extends AccessibilityService {
 
     @Override
     public void onInterrupt() {
+        RemoteKeys.endPresses();
     }
 }

@@ -219,10 +219,16 @@ enable_service() {   # appends to enabled_accessibility_services without droppin
 }
 if [ "${INPUT_KEY_SERVICE:-0}" = 1 ]; then enable_service InputKeyService; fi
 if [ "${HOME_KEY_SERVICE:-0}" = 1 ]; then enable_service HomeKeyService; fi
+# Each grant follows its switch on every install: pm install -r keeps a grant, so a run without the switch takes it
+# back. WRITE_SECURE_SETTINGS opens every secure and global setting, READ_LOGS every app's log lines (FORK.md).
 if [ "${RESTORE_KEY_SERVICES:-0}" = 1 ] || [ "${BACKLIGHT_KEYS:-0}" = 1 ]; then
   "$PY" -I ../tools/tv.py "pm grant com.gathin.tvhome android.permission.WRITE_SECURE_SETTINGS && echo restore-granted"
+else
+  "$PY" -I ../tools/tv.py "pm revoke com.gathin.tvhome android.permission.WRITE_SECURE_SETTINGS 2>/dev/null; echo secure-settings-revoked"
 fi
 if [ "${VENDOR_KEY_LOG:-0}" = 1 ]; then
   "$PY" -I ../tools/tv.py "pm grant com.gathin.tvhome android.permission.READ_LOGS && echo logs-granted"
+else
+  "$PY" -I ../tools/tv.py "pm revoke com.gathin.tvhome android.permission.READ_LOGS 2>/dev/null; echo logs-revoked"
 fi
 echo "Installed. Press Home on the remote to see it."

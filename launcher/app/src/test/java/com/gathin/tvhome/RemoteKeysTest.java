@@ -188,6 +188,20 @@ public class RemoteKeysTest {
         }
     }
 
+    @Test public void aPressEndedByHomeLeavingOpensNothing() {
+        Remote remote = new Remote();
+        remote.down("1:190:0", 1000, "hold");
+        remote.presses.endAll();   // Home paused before HOLD_MS
+        remote.holdTimeout();
+        remote.down("1:190:0", 1000, "hold");   // the other service's copy of the same DOWN
+        remote.up("1:190:0", 1800, 1000, "tap", "hold");
+        assertEquals(Arrays.asList(), remote.opened);
+        // the next press is a press again
+        remote.down("1:190:0", 3000, "hold");
+        remote.up("1:190:0", 3100, 3000, "tap", "hold");
+        assertEquals(Arrays.asList("tap"), remote.opened);
+    }
+
     @Test public void chordedKeysKeepTheirOwnHold() {
         Remote remote = new Remote();
         remote.down("1:190:0", 1000, "a.hold");

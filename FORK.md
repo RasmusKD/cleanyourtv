@@ -1,7 +1,8 @@
 # TCL BeyondTV fork
 
 The reference launcher with four switches for a TCL BeyondTV (RT2851, Android TV 9,
-`V8-R851T02-LF1V606`), all off by default. Upstream took the Inputs fold
+`V8-R851T02-LF1V606`), all off by default (this branch's Prosonic setup turns `hide_rows_until_focus` and
+`developer_options_row` on in `config.xml`; each such value says so in its comment). Upstream took the Inputs fold
 ([#1964](https://github.com/Gathin23/cleanyourtv/pull/1964)), the device note
 ([#1967](https://github.com/Gathin23/cleanyourtv/pull/1967)) and the Danish string
 ([#1968](https://github.com/Gathin23/cleanyourtv/pull/1968)); the rest lives here.
@@ -46,10 +47,20 @@ TV_HOST=<tv ip> INPUT_KEY_SERVICE=1 RESTORE_KEY_SERVICES=1 VENDOR_KEY_LOG=1 ./la
 On Windows: `-InputKeyService -RestoreKeyServices -VendorKeyLog`.
 
 **What `READ_LOGS` means.** It lets the launcher read the system log, which can hold other apps'
-messages. The launcher reads only the window manager's key lines, keeps nothing and has no
-network permission; if you do not want that grant, leave `vendor_key_log` off and the Netflix
+messages. The launcher reads only the window manager's and activity manager's lines, acts only on
+those the system itself wrote (uid 1000, so an app cannot fake a key press), keeps nothing and has
+no network permission; if you do not want that grant, leave `vendor_key_log` off and the Netflix
 button works on Home only. Upstream discussion:
 [#1969](https://github.com/Gathin23/cleanyourtv/issues/1969).
+
+**What `WRITE_SECURE_SETTINGS` means.** `RESTORE_KEY_SERVICES=1` and `BACKLIGHT_KEYS=1` grant it so
+the launcher can switch its own key helpers back on and step the backlight, but Android grants it
+whole: the launcher could then change any secure or global setting, accessibility services and
+network debugging among them. It changes only those two.
+
+Each grant follows its switch on every install: a run without `VENDOR_KEY_LOG=1` takes `READ_LOGS`
+back, and one without either `RESTORE_KEY_SERVICES=1` or `BACKLIGHT_KEYS=1` takes
+`WRITE_SECURE_SETTINGS` back.
 
 `key_filter` false keeps the accessibility service from filtering keys, so the Input button stays
 as quick as with no helper; the service then only hosts the log watcher.

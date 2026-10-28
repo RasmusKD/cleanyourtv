@@ -5,6 +5,7 @@ import java.util.Map;
 import org.junit.Test;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
 public class KeyLogWatcherTest {
@@ -21,17 +22,42 @@ public class KeyLogWatcherTest {
         assertFalse(followed.containsKey(999));
     }
 
-    @Test public void readsTheKeycodeOfAReleaseLine() {
-        assertEquals(4062, KeyLogWatcher.keyUp("D/WindowManager( 1234): interceptKeyTi keyCode=4062 down=false"));
-    }
-
-    @Test public void aPressLineIsNotARelease() {
-        assertEquals(-1, KeyLogWatcher.keyUp("D/WindowManager( 1234): interceptKeyTi keyCode=4062 down=true"));
+    @Test public void readsTheKeycodeOfPressAndReleaseLines() {
+        assertEquals(4062, KeyLogWatcher.keyCode("interceptKeyTi keyCode=4062 down=false repeatCount=0"));
+        assertFalse(KeyLogWatcher.keyDown("interceptKeyTi keyCode=4062 down=false repeatCount=0"));
+        assertEquals(4062, KeyLogWatcher.keyCode("interceptKeyTi keyCode=4062 down=true"));
+        assertTrue(KeyLogWatcher.keyDown("interceptKeyTi keyCode=4062 down=true"));
     }
 
     @Test public void otherLinesAreIgnored() {
-        assertEquals(-1, KeyLogWatcher.keyUp("D/WindowManager( 1234): Unhandled key: keyCode=4062"));
-        assertEquals(-1, KeyLogWatcher.keyUp(""));
+        assertEquals(-1, KeyLogWatcher.keyCode("Unhandled key: keyCode=4062"));
+        assertEquals(-1, KeyLogWatcher.keyCode("interceptKeyTi keyCode=4062 down=trueish"));
+        assertEquals(-1, KeyLogWatcher.keyCode(""));
+        // a keycode past int range would end the reader thread if it reached parseInt
+        assertEquals(-1, KeyLogWatcher.keyCode("interceptKeyTi keyCode=99999999999 down=false"));
+    }
+
+    @Test public void onlyTheSystemsLinesCount() {
+        KeyLogWatcher.SystemLine line = KeyLogWatcher.systemLine(
+                "1730000000.123 D/WindowManager( 1000:  680): interceptKeyTi keyCode=4062 down=false");
+        assertEquals(1730000000123L, line.ms);
+        assertEquals("interceptKeyTi keyCode=4062 down=false", line.text);
+        // the same text from an app that logs under the window manager's tag
+        assertNull(KeyLogWatcher.systemLine(
+                "1730000000.123 D/WindowManager(10123: 4410): interceptKeyTi keyCode=4062 down=false"));
+        // a message cannot carry a forged prefix: logcat prints each line of it after the writer's own
+        assertNull(KeyLogWatcher.systemLine(
+                "1730000000.123 I/WindowManager(10123: 4410): 1730000000.124 D/WindowManager( 1000:  680): x"));
+        assertNull(KeyLogWatcher.systemLine("D/WindowManager( 1000:  680): interceptKeyTi keyCode=4062 down=false"));
+        assertNull(KeyLogWatcher.systemLine("logcat: Unknown option"));
+    }
+
+    @Test public void aRestartReadsOnWhereTheLastLogcatStopped() {
+        long now = 1730000010000L;
+        assertEquals("1730000010.000", KeyLogWatcher.readFrom(0, now));            // the first start: from now
+        assertEquals("1730000008.501", KeyLogWatcher.readFrom(now - 1499, now));   // the 2 s restart gap is read
+        assertEquals("1730000005.000", KeyLogWatcher.readFrom(now - 60000, now));  // never more than CATCH_UP_MS back
+        assertEquals("1730000010.000", KeyLogWatcher.readFrom(now + 60000, now));  // a clock set back
     }
 
     @Test public void readsOnlyLaunchEntries() {
