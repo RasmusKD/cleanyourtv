@@ -30,11 +30,13 @@ if [ -n "${JAVA_HOME:-}" ]; then export PATH="$JAVA_HOME/bin:$PATH"; fi
 tv 'pkill -x remote-daemon; true' >/dev/null
 tv --push daemon/build/remote-daemon /data/local/tmp/remote-daemon >/dev/null
 tv --push "$CONFIG" /data/local/tmp/remote-daemon.conf >/dev/null
-tv "chmod 755 /data/local/tmp/remote-daemon; echo '-mode $MODE' > /data/local/tmp/remote-daemon.args; sync"
+# The config names the commands the daemon runs as the shell user: only that user may read or change any of it.
+tv "cd /data/local/tmp && echo '-mode $MODE' > remote-daemon.args && touch remote-daemon.log && \
+chmod 700 remote-daemon && chmod 600 remote-daemon.conf remote-daemon.args remote-daemon.log && sync"
 
 "$PY" -I ../../tools/b64push.py app/build/outputs/apk/release/app-release.apk /data/local/tmp/remote-daemon.apk
 # The copy stays: the daemon loads its Inject helper from it, not from whatever package holds the starter's name.
-OUT=$(tv 'pm install -r /data/local/tmp/remote-daemon.apk')
+OUT=$(tv 'chmod 600 /data/local/tmp/remote-daemon.apk && pm install -r /data/local/tmp/remote-daemon.apk')
 echo "$OUT"
 case "$OUT" in *Success*) ;; *) echo "ERROR: pm install failed" >&2; exit 1 ;; esac
 

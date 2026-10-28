@@ -31,15 +31,15 @@
 #
 # Netflix and Prime buttons: MediaTek's hotkey service (com.mediatek.tv.service) receives both as global buttons and
 # starts Netflix / Prime Video itself; with them disabled the start fails in the log ("result code=-91"/"-92").
-# The launcher remaps them with app_keys "launch:com.netflix.ninja:<app>" and
-# "launch:com.amazon.amazonvideo.livingroom:<app>", vendor_key_log on and key_filter off: any key-filtering helper
-# kills the held-volume ramp here, and filtered volume keys never reach the helper, so consume_volume_keys cannot
-# bring it back. Android 14 asks "Allow access to all device logs?" over Home once per boot; allow it.
+# On this set Remote Daemon (addons/remote-daemon, daemon/prosonic.conf) remaps them from any app: it reads the
+# remote itself, so no key filtering is involved and a held volume key keeps its ramp. The launcher's alternative,
+# app_keys "launch:com.netflix.ninja:<app>" with vendor_key_log, needs READ_LOGS and the log-access dialog after
+# every boot; with the daemon in place the launcher is installed with INPUT_KEY_SERVICE=1 only, which takes READ_LOGS
+# and WRITE_SECURE_SETTINGS back.
 #
 # Backlight: Settings.Global picture_backlight (0 to 100) is the picture settings' Backlight slider, and
-# com.mediatek.tv.service (TVMenuSettingsService) pushes every change of it to the panel. The app_keys actions
-# "brighter" and "dimmer" step it; P+/P- do that on Home (BACKLIGHT_KEYS=1 grants WRITE_SECURE_SETTINGS). Inside
-# other apps the keys would need key_filter, which costs the held-volume ramp.
+# com.mediatek.tv.service (TVMenuSettingsService) pushes every change of it to the panel. Remote Daemon steps it on
+# P+/P- from any app; the launcher's "brighter" and "dimmer" app_keys actions (BACKLIGHT_KEYS=1) work on Home only.
 
 # Vestel telemetry, logging and "cleaner"
 com.vestel.vestelreporter

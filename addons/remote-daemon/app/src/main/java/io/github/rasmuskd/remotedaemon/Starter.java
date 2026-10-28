@@ -11,8 +11,9 @@ final class Starter {
     private static final String TAG = "RemoteDaemon";
     static final String DIR = "/data/local/tmp";
     // adbd ends the shell's whole process group when the command returns: the sleep lets setsid move the daemon into
-    // a session of its own first, and the daemon must be found running after it.
-    static final String COMMAND = "cd " + DIR + " && if pidof remote-daemon >/dev/null; then echo running; "
+    // a session of its own first, and the daemon must be found running after it. umask 077: the log it creates is the
+    // shell user's alone, like the config.
+    static final String COMMAND = "umask 077; cd " + DIR + " && if pidof remote-daemon >/dev/null; then echo running; "
             + "else setsid -d ./remote-daemon $(cat remote-daemon.args 2>/dev/null) remote-daemon.conf "
             + "> remote-daemon.log 2>&1 < /dev/null & sleep 2; "
             + "if pidof remote-daemon >/dev/null; then echo started; else echo failed; cat remote-daemon.log; fi; fi";
