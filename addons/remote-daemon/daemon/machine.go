@@ -14,6 +14,10 @@ const (
 	// RepeatDelay and RepeatEvery pace a held repeat key's command.
 	RepeatDelay = 450 * time.Millisecond
 	RepeatEvery = 220 * time.Millisecond
+	// MaxHeld ends a key that has been down this long as if it came up: a key-up the kernel lost (an input
+	// overflow the resync missed) must not leave a smooth or repeat key pressing forever. No real hold lasts this
+	// long; volume runs from 0 to 100 in about 6 s.
+	MaxHeld = 20 * time.Second
 )
 
 // Output is where the machine's decisions go: Forward hands a key event to Android unchanged (value 0 up, 1 down,
@@ -89,6 +93,10 @@ func (m *Machine) Tick(now time.Time) {
 		if h.next.IsZero() || now.Before(h.next) {
 			continue
 		}
+		if now.Sub(h.at) >= MaxHeld {
+			delete(m.down, code)
+			continue
+		}
 		b := h.binding
 		switch {
 		case h.release:
@@ -105,6 +113,15 @@ func (m *Machine) Tick(now time.Time) {
 			h.next = now.Add(RepeatEvery)
 		}
 	}
+}
+
+// Held lists the keys the machine takes as down.
+func (m *Machine) Held() []uint16 {
+	codes := make([]uint16, 0, len(m.down))
+	for code := range m.down {
+		codes = append(codes, code)
+	}
+	return codes
 }
 
 // Next is the earliest time Tick has work, or the zero time when nothing is due.

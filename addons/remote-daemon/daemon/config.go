@@ -87,12 +87,17 @@ func ParseConfig(r io.Reader) (*Config, error) {
 			if command == "" {
 				return nil, fmt.Errorf("line %d: %s needs a command", n, fields[1])
 			}
+			// one tap (or repeat) and one hold per key: a second line would silently replace the first
 			switch fields[1] {
-			case "tap":
-				b.Tap = command
-			case "repeat":
-				b.Tap, b.Repeat = command, true
+			case "tap", "repeat":
+				if b.Tap != "" {
+					return nil, fmt.Errorf("line %d: %s already has a tap or repeat", n, fields[0])
+				}
+				b.Tap, b.Repeat = command, fields[1] == "repeat"
 			case "hold":
+				if b.Hold != "" {
+					return nil, fmt.Errorf("line %d: %s already has a hold", n, fields[0])
+				}
 				b.Hold = command
 			}
 		default:
@@ -119,7 +124,7 @@ func keyCode(name string) (uint16, error) {
 		return code, nil
 	}
 	n, err := strconv.ParseUint(name, 10, 16)
-	if err != nil {
+	if err != nil || n > keyMax {
 		return 0, fmt.Errorf("unknown key %q", name)
 	}
 	return uint16(n), nil

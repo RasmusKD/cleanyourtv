@@ -4,7 +4,13 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 
+import java.io.DataInputStream;
+import java.io.IOException;
+import java.io.OutputStream;
 import java.math.BigInteger;
+import java.net.InetAddress;
+import java.net.ServerSocket;
+import java.net.Socket;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.nio.charset.StandardCharsets;
@@ -17,6 +23,7 @@ import javax.crypto.Cipher;
 import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
 public class AdbTest {
     @Rule public TemporaryFolder dir = new TemporaryFolder();
@@ -46,6 +53,46 @@ public class AdbTest {
         byte[] signed = rsa.doFinal(key.sign(token));
         assertEquals(35, signed.length);
         assertArrayEquals(token, Arrays.copyOfRange(signed, 15, 35));
+    }
+
+    /** A peer that answers every reply with a new token gets one signature and one key offer, then a closed door. */
+    @Test public void aPeerSendingTokensForeverGetsOneSignature() throws Exception {
+        AdbKey key = AdbKey.loadOrCreate(dir.getRoot());
+        int[] signatures = {0}, offers = {0};
+        try (ServerSocket server = new ServerSocket(0, 1, InetAddress.getLoopbackAddress())) {
+            Thread peer = new Thread(() -> {
+                try (Socket s = server.accept()) {
+                    DataInputStream in = new DataInputStream(s.getInputStream());
+                    OutputStream out = s.getOutputStream();
+                    for (int i = 0; i < 10; i++) {
+                        byte[] head = new byte[24];
+                        in.readFully(head);
+                        ByteBuffer h = ByteBuffer.wrap(head).order(ByteOrder.LITTLE_ENDIAN);
+                        int command = h.getInt(), arg0 = h.getInt();
+                        h.getInt();
+                        in.readFully(new byte[h.getInt()]);
+                        if (command == Adb.AUTH && arg0 == 2) signatures[0]++;
+                        if (command == Adb.AUTH && arg0 == 3) offers[0]++;
+                        byte[] token = new byte[20];
+                        out.write(Adb.header(Adb.AUTH, 1, 0, token));
+                        out.write(token);
+                        out.flush();
+                    }
+                } catch (IOException closed) {
+                    // the client gave up, which is the point
+                }
+            });
+            peer.start();
+            try {
+                Adb.shell("127.0.0.1", server.getLocalPort(), key, "true", 2000);
+                fail("authenticated against a peer that never accepts");
+            } catch (IOException expected) {
+                // refused the third token
+            }
+            peer.join(5000);
+        }
+        assertEquals(1, signatures[0]);
+        assertEquals(1, offers[0]);
     }
 
     @Test public void publicKeyStructMatchesAdbd() throws Exception {

@@ -10,7 +10,7 @@ without one the launcher sees buttons only on Home. The daemon reads below Andro
 
 ```
 # <key> <kind> [command]; key is a name below or the Linux key code from `getevent -l`
-sh bl() { ... }                 # run once in the action shell: helper functions
+sh bl() { ... }                 # helper functions, defined before every command
 VOLUMEUP    smooth              # held: one step per press instead of the TV's accelerated repeat
 CHANNELUP   repeat bl 1         # runs on the press and again while held
 CHANNELDOWN tap    bl -1        # runs on the release when the key also has a hold command
@@ -20,7 +20,9 @@ PAGEUP      tap    app com.viu.viuapp/.ui.MainActivity
 ```
 
 Names: `VOLUMEUP`, `VOLUMEDOWN`, `MUTE`, `CHANNELUP`, `CHANNELDOWN`, `RED`, `GREEN`, `YELLOW`, `BLUE`, `PAGEUP`,
-`PAGEDOWN`, `HOME`, `BACK`, `MENU`, `INFO`, `NUMERIC_0` to `NUMERIC_9`. Vendor buttons have plain codes: find them
+`PAGEDOWN`, `HOME`, `BACK`, `MENU`, `INFO`, `NUMERIC_0` to `NUMERIC_9`. A key takes one tap or repeat and one
+hold. Each command runs in a shell of its own, in the order the buttons came, with an empty stdin; one still
+running after 10 s is ended. The daemon checks every command's syntax at start and refuses a config with a broken one. Vendor buttons have plain codes: find them
 with `tools/tv.py 'getevent -l'` while pressing (the Prosonic's Netflix button is `PAGEUP`, Prime Video 504).
 [`daemon/prosonic.conf`](daemon/prosonic.conf) is the full Prosonic BODRUM setup.
 

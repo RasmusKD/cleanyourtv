@@ -22,25 +22,22 @@ import (
 	"unsafe"
 )
 
-const (
-	evSyn = 0x00
-	evKey = 0x01
-
-	// 32-bit ARM userland: struct input_event is two 32-bit time fields, type, code and value.
-	eventSize = 16
-	keyMax    = 0x2ff
-)
+// clonePhys marks the daemon's own uinput copy, so finding the remote never picks the copy instead.
+const clonePhys = "remote-daemon/clone"
 
 func ioc(dir, typ, nr, size uintptr) uintptr { return dir<<30 | size<<16 | typ<<8 | nr }
 
 var (
 	eviocgname = func(n uintptr) uintptr { return ioc(2, 'E', 0x06, n) }
+	eviocgphys = func(n uintptr) uintptr { return ioc(2, 'E', 0x07, n) }
 	eviocgid   = ioc(2, 'E', 0x02, 8)
+	eviocgkey  = func(n uintptr) uintptr { return ioc(2, 'E', 0x18, n) }
 	eviocgbit  = func(ev, n uintptr) uintptr { return ioc(2, 'E', 0x20+ev, n) }
 	eviocgrab  = ioc(1, 'E', 0x90, 4)
 
 	uiSetEvbit   = ioc(1, 'U', 100, 4)
 	uiSetKeybit  = ioc(1, 'U', 101, 4)
+	uiSetPhys    = ioc(1, 'U', 108, unsafe.Sizeof(uintptr(0)))
 	uiDevCreate  = ioc(0, 'U', 1, 0)
 	uiDevDestroy = ioc(0, 'U', 2, 0)
 )
@@ -52,9 +49,18 @@ func ioctl(fd, req, arg uintptr) error {
 	return nil
 }
 
+func ioctlString(f *os.File, req func(uintptr) uintptr) (string, error) {
+	buf := make([]byte, 256)
+	if err := ioctl(f.Fd(), req(uintptr(len(buf))), uintptr(unsafe.Pointer(&buf[0]))); err != nil {
+		return "", err
+	}
+	return string(bytes.TrimRight(buf, "\x00")), nil
+}
+
 type inputID struct{ Bustype, Vendor, Product, Version uint16 }
 
-// findDevice opens the first /dev/input/event* whose name contains want.
+// findDevice opens the first /dev/input/event* whose name contains want, skipping a copy this daemon (or an
+// earlier run of it) made.
 func findDevice(want string) (*os.File, string, error) {
 	paths, _ := filepath.Glob("/dev/input/event*")
 	for _, p := range paths {
@@ -62,9 +68,8 @@ func findDevice(want string) (*os.File, string, error) {
 		if err != nil {
 			continue
 		}
-		name := make([]byte, 256)
-		if ioctl(f.Fd(), eviocgname(uintptr(len(name))), uintptr(unsafe.Pointer(&name[0]))) == nil {
-			if n := string(bytes.TrimRight(name, "\x00")); strings.Contains(n, want) {
+		if n, err := ioctlString(f, eviocgname); err == nil && strings.Contains(n, want) {
+			if phys, _ := ioctlString(f, eviocgphys); phys != clonePhys {
 				return f, n, nil
 			}
 		}
@@ -103,6 +108,11 @@ func cloneDevice(src *os.File, name string) (*os.File, error) {
 			}
 		}
 	}
+	phys := append([]byte(clonePhys), 0)
+	if err := ioctl(fd, uiSetPhys, uintptr(unsafe.Pointer(&phys[0]))); err != nil {
+		u.Close()
+		return nil, fmt.Errorf("UI_SET_PHYS: %w", err)
+	}
 	// struct uinput_user_dev: name[80], input_id, ff_effects_max, then four 64-entry abs arrays
 	dev := make([]byte, 80+8+4+4*64*4)
 	copy(dev[:79], name)
@@ -121,62 +131,13 @@ func cloneDevice(src *os.File, name string) (*os.File, error) {
 	return u, nil
 }
 
-type uinputOut struct {
-	dev *os.File
-	sh  io.Writer
-	// inject is the starter app's Inject helper, which presses keys through Android's input injection: how a
-	// watching daemon, holding no copy of the remote, adds presses (nil when no key is smooth)
-	inject io.Writer
-}
-
-func (o *uinputOut) write(typ, code uint16, value int32) {
-	if o.dev == nil {
-		return // not holding the remote: its own events already reach Android
-	}
-	ev := make([]byte, eventSize)
-	binary.LittleEndian.PutUint16(ev[8:], typ)
-	binary.LittleEndian.PutUint16(ev[10:], code)
-	binary.LittleEndian.PutUint32(ev[12:], uint32(value))
-	if _, err := o.dev.Write(ev); err != nil {
-		log.Printf("uinput write: %v", err)
-	}
-}
-
-func (o *uinputOut) Forward(code uint16, value int32) {
-	o.write(evKey, code, value)
-	o.write(evSyn, 0, 0)
-}
-
-func (o *uinputOut) Press(code uint16) {
-	if o.dev == nil {
-		o.injectKey("p", code)
-		return
-	}
-	o.Forward(code, 1)
-	o.Forward(code, 0)
-}
-
-// Release only matters when watching: holding the remote, Android never saw the key go down.
-func (o *uinputOut) Release(code uint16) {
-	if o.dev == nil {
-		o.injectKey("u", code)
-	}
-}
-
-func (o *uinputOut) injectKey(action string, code uint16) {
-	if o.inject == nil {
-		return
-	}
-	if _, err := fmt.Fprintf(o.inject, "%s %d\n", action, androidKeys[code]); err != nil {
-		log.Printf("inject: %v", err)
-	}
-}
-
-// startInject runs the starter app's Inject class as this (shell) user through app_process. If it dies, smooth keys
-// fall back to Android's own repeat and every other binding keeps working.
-func startInject(device string) (io.Writer, error) {
-	cmd := exec.Command("/system/bin/sh", "-c", `CLASSPATH="$(pm path io.github.rasmuskd.remotedaemon | sed -n 's/^package://p')" `+
-		`exec app_process / io.github.rasmuskd.remotedaemon.Inject "$1"`, "inject", device)
+// startInject runs the starter app's Inject class as this (shell) user through app_process, from the copy of the
+// app install.sh left in the daemon's own directory: only the shell user can write there, so what runs is what
+// install.sh pushed, whatever package later holds the starter's name. If it dies, smooth keys fall back to
+// Android's own repeat and every other binding keeps working.
+func startInject(apk, device string) (io.Writer, error) {
+	cmd := exec.Command("/system/bin/sh", "-c", `CLASSPATH="$1" exec app_process / io.github.rasmuskd.remotedaemon.Inject "$2"`,
+		"inject", apk, device)
 	in, err := cmd.StdinPipe()
 	if err != nil {
 		return nil, err
@@ -189,10 +150,72 @@ func startInject(device string) (io.Writer, error) {
 	return in, nil
 }
 
-func (o *uinputOut) Run(command string) {
-	log.Printf("run %s", command)
-	if _, err := io.WriteString(o.sh, command+"\n"); err != nil {
-		log.Printf("action shell: %v", err)
+// lockOnly takes the lock file next to the config, so a second daemon started at the same moment exits; the
+// lock goes with the process.
+func lockOnly(dir string) error {
+	f, err := os.OpenFile(filepath.Join(dir, "remote-daemon.lock"), os.O_CREATE|os.O_RDWR, 0o600)
+	if err != nil {
+		return err
+	}
+	if err := syscall.Flock(int(f.Fd()), syscall.LOCK_EX|syscall.LOCK_NB); err != nil {
+		f.Close()
+		return fmt.Errorf("another remote-daemon runs: %w", err)
+	}
+	return nil // f stays open, and locked, for the life of the process
+}
+
+// input is what the reader hands the key loop: a key event, or after an overflow the keys the kernel has down.
+type input struct {
+	code  uint16
+	value int32
+	down  []byte // set on a resync: the EVIOCGKEY bitmap
+}
+
+// read passes the remote's key events on. After SYN_DROPPED the kernel discards events up to the next SYN_REPORT,
+// so key-ups may be gone: the reader then asks the kernel which keys are down. A read error reopens the device.
+func read(src *os.File, name, want string, grab bool, events chan<- input) {
+	buf := make([]byte, eventSize*64)
+	dropping := false
+	for {
+		n, err := src.Read(buf)
+		if err != nil {
+			log.Printf("read %s: %v; reopening", name, err)
+			src.Close()
+			for {
+				time.Sleep(2 * time.Second)
+				if src, name, err = findDevice(want); err != nil {
+					continue
+				}
+				if grab {
+					if err = ioctl(src.Fd(), eviocgrab, 1); err != nil {
+						log.Printf("EVIOCGRAB: %v", err)
+						src.Close()
+						continue
+					}
+				}
+				break
+			}
+			dropping = false
+			continue
+		}
+		for i := 0; i+eventSize <= n; i += eventSize {
+			ev := buf[i : i+eventSize]
+			typ, code := binary.LittleEndian.Uint16(ev[8:]), binary.LittleEndian.Uint16(ev[10:])
+			switch {
+			case typ == evSyn && code == synDropped:
+				dropping = true
+			case typ == evSyn && code == synReport && dropping:
+				dropping = false
+				keys := make([]byte, keyMax/8+1)
+				if err := ioctl(src.Fd(), eviocgkey(uintptr(len(keys))), uintptr(unsafe.Pointer(&keys[0]))); err != nil {
+					log.Printf("EVIOCGKEY: %v", err)
+					keys = make([]byte, keyMax/8+1) // unknown: end every held key
+				}
+				events <- input{down: keys}
+			case typ == evKey && !dropping:
+				events <- input{code: code, value: int32(binary.LittleEndian.Uint32(ev[12:]))}
+			}
+		}
 	}
 }
 
@@ -211,6 +234,10 @@ func main() {
 		fmt.Fprintln(os.Stderr, "usage: remote-daemon [-device name] [-mode m] <config>")
 		os.Exit(2)
 	}
+	dir := filepath.Dir(flag.Arg(0))
+	if err := lockOnly(dir); err != nil {
+		log.Fatal(err)
+	}
 	text, err := os.ReadFile(flag.Arg(0))
 	if err != nil {
 		log.Fatal(err)
@@ -218,6 +245,17 @@ func main() {
 	cfg, err := ParseConfig(bytes.NewReader(text))
 	if err != nil {
 		log.Fatalf("%s: %v", flag.Arg(0), err)
+	}
+	run := newRunner(cfg.Init)
+	for _, b := range cfg.Bindings {
+		for _, command := range []string{b.Tap, b.Hold} {
+			if command == "" {
+				continue
+			}
+			if err := run.check(command); err != nil {
+				log.Fatalf("%s: %v", flag.Arg(0), err)
+			}
+		}
 	}
 
 	src, name, err := findDevice(*device)
@@ -231,8 +269,8 @@ func main() {
 		}
 		defer ioctl(dst.Fd(), uiDevDestroy, 0)
 	}
-	if *mode == "full" || *mode == "grab-only" {
-		// A second daemon fails here (EBUSY) and exits; the first keeps the remote.
+	grab := *mode == "full" || *mode == "grab-only"
+	if grab {
 		if err := ioctl(src.Fd(), eviocgrab, 1); err != nil {
 			log.Fatalf("EVIOCGRAB: %v", err)
 		}
@@ -241,51 +279,21 @@ func main() {
 		dst = nil // the remote still reaches Android itself; the copy only has to exist
 	}
 
-	// One shell runs every command in order, so helper functions from the config's sh lines stay defined.
-	sh := exec.Command("/system/bin/sh")
-	shIn, err := sh.StdinPipe()
-	if err != nil {
-		log.Fatal(err)
+	commands := make(chan string, 32)
+	go run.serve(commands)
+	out := &uinputOut{commands: commands}
+	if dst != nil {
+		out.dev = dst
 	}
-	sh.Stdout, sh.Stderr = os.Stderr, os.Stderr
-	if err := sh.Start(); err != nil {
-		log.Fatal(err)
-	}
-	go func() {
-		// a command that kills the shell would leave bound keys dead: exit, and the grab goes with us
-		log.Fatalf("action shell ended: %v", sh.Wait())
-	}()
-	out := &uinputOut{dev: dst, sh: shIn}
 	if dst == nil && cfg.hasSmooth() {
-		if out.inject, err = startInject(*device); err != nil {
+		if out.inject, err = startInject(filepath.Join(dir, "remote-daemon.apk"), *device); err != nil {
 			log.Printf("inject helper: %v; smooth keys keep Android's own repeat", err)
 		}
 	}
-	for _, line := range cfg.Init {
-		out.Run(line)
-	}
 	log.Printf("%s %q, %d keys bound", map[bool]string{true: "holding", false: "watching"}[dst != nil], name, len(cfg.Bindings))
 
-	type keyEvent struct {
-		code  uint16
-		value int32
-	}
-	events := make(chan keyEvent, 64)
-	go func() {
-		buf := make([]byte, eventSize*64)
-		for {
-			n, err := src.Read(buf)
-			if err != nil {
-				log.Fatalf("read %s: %v", name, err)
-			}
-			for i := 0; i+eventSize <= n; i += eventSize {
-				ev := buf[i : i+eventSize]
-				if binary.LittleEndian.Uint16(ev[8:]) == evKey {
-					events <- keyEvent{binary.LittleEndian.Uint16(ev[10:]), int32(binary.LittleEndian.Uint32(ev[12:]))}
-				}
-			}
-		}
-	}()
+	events := make(chan input, 64)
+	go read(src, name, *device, grab, events)
 
 	// a watching daemon whose helper failed adds nothing to smooth keys: Android's own repeat must then run on
 	m := NewMachine(cfg, out, dst == nil && out.inject != nil)
@@ -298,7 +306,16 @@ func main() {
 		}
 		select {
 		case ev := <-events:
-			m.Key(ev.code, ev.value, time.Now())
+			now := time.Now()
+			if ev.down == nil {
+				m.Key(ev.code, ev.value, now)
+				break
+			}
+			for _, code := range m.Held() {
+				if ev.down[code/8]&(1<<(code%8)) == 0 {
+					m.Key(code, 0, now)
+				}
+			}
 		case <-timer.C:
 		}
 		m.Tick(time.Now())

@@ -13,10 +13,12 @@
         android:label="@string/app_name">
 
         <!-- Starts the daemon once by hand: install.sh opens it, so the TV asks to allow this app's ADB key while
-             someone is in front of it, and not at the first reboot. -->
+             someone is in front of it, and not at the first reboot. The permission lets the ADB shell (which holds
+             it) open it and keeps ordinary apps out. -->
         <activity
             android:name=".StartActivity"
             android:exported="true"
+            android:permission="android.permission.WRITE_SECURE_SETTINGS"
             android:excludeFromRecents="true"
             android:noHistory="true"
             android:theme="@android:style/Theme.NoDisplay" />

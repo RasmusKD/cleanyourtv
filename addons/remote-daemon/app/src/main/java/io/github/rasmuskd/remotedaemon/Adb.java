@@ -78,14 +78,17 @@ final class Adb {
             socket.setSoTimeout(10000);
             Adb adb = new Adb(socket);
             adb.send(CNXN, VERSION, MAX_DATA, "host::\0".getBytes(StandardCharsets.UTF_8));
-            boolean signed = false;
+            // One signature, then at most one offer of the key: a peer that keeps sending tokens gets no more
+            // signatures and no endless wait.
+            int tokens = 0;
             while (true) {
                 Message m = adb.read();
                 if (m.command == CNXN) break;
-                if (m.command != AUTH || m.arg0 != AUTH_TOKEN) throw new IOException("unexpected ADB reply");
-                if (!signed) {
+                if (m.command != AUTH || m.arg0 != AUTH_TOKEN || ++tokens > 2) {
+                    throw new IOException("unexpected ADB reply");
+                }
+                if (tokens == 1) {
                     adb.send(AUTH, AUTH_SIGNATURE, 0, key.sign(m.data));
-                    signed = true;
                 } else {
                     // the signature was refused: this key is new to the TV, so ask
                     adb.send(AUTH, AUTH_RSAPUBLICKEY, 0, key.publicKeyLine("remote-daemon@tv"));

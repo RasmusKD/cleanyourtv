@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"os"
 	"reflect"
 	"strings"
 	"testing"
@@ -56,8 +57,20 @@ func TestParse(t *testing.T) {
 	}
 }
 
+func TestShippedConfigParses(t *testing.T) {
+	f, err := os.Open("prosonic.conf")
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer f.Close()
+	if _, err := ParseConfig(f); err != nil {
+		t.Fatal(err)
+	}
+}
+
 func TestParseRefusesNonsense(t *testing.T) {
-	for _, bad := range []string{"VOLUMEUP smooth now", "GREEN tap", "NOPE tap x", "GREEN blink x", "VOLUMEUP smooth\nVOLUMEUP tap x"} {
+	for _, bad := range []string{"VOLUMEUP smooth now", "GREEN tap", "NOPE tap x", "GREEN blink x", "VOLUMEUP smooth\nVOLUMEUP tap x",
+		"GREEN repeat x\nGREEN tap y", "GREEN tap x\nGREEN tap y", "GREEN hold x\nGREEN hold y", "800 tap x"} {
 		if _, err := ParseConfig(strings.NewReader(bad)); err == nil {
 			t.Errorf("%q parsed", bad)
 		}
@@ -134,6 +147,22 @@ func TestWatchedHeldVolumeStopsAndroidRepeat(t *testing.T) {
 	want := []string{"release 115", "press 115", "press 115", "press 115", "press 115", "press 115", "press 115"}
 	if !reflect.DeepEqual([]string(*r), want) {
 		t.Fatal(*r)
+	}
+}
+
+// A key-up the kernel lost must not leave a key pressing forever.
+func TestKeyWithoutUpStopsAtMaxHeld(t *testing.T) {
+	m, r := machineIn(t, true)
+	t0 := time.Now()
+	m.Key(115, 1, t0)
+	m.Key(402, 1, t0)
+	for at := t0; at.Before(t0.Add(MaxHeld + time.Second)); at = at.Add(10 * time.Millisecond) {
+		m.Tick(at)
+	}
+	n := len(*r)
+	m.Tick(t0.Add(time.Minute))
+	if len(*r) != n || !m.Next().IsZero() || len(m.Held()) != 0 {
+		t.Fatalf("still pressing after %v: %d", MaxHeld, len(*r)-n)
 	}
 }
 

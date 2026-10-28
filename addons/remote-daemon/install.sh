@@ -33,7 +33,8 @@ tv --push "$CONFIG" /data/local/tmp/remote-daemon.conf >/dev/null
 tv "chmod 755 /data/local/tmp/remote-daemon; echo '-mode $MODE' > /data/local/tmp/remote-daemon.args; sync"
 
 "$PY" -I ../../tools/b64push.py app/build/outputs/apk/release/app-release.apk /data/local/tmp/remote-daemon.apk
-OUT=$(tv 'pm install -r /data/local/tmp/remote-daemon.apk; rm -f /data/local/tmp/remote-daemon.apk')
+# The copy stays: the daemon loads its Inject helper from it, not from whatever package holds the starter's name.
+OUT=$(tv 'pm install -r /data/local/tmp/remote-daemon.apk')
 echo "$OUT"
 case "$OUT" in *Success*) ;; *) echo "ERROR: pm install failed" >&2; exit 1 ;; esac
 
