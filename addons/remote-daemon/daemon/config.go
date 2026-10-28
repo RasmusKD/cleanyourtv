@@ -19,6 +19,14 @@ var keyNames = map[string]uint16{
 	"NUMERIC_5": 517, "NUMERIC_6": 518, "NUMERIC_7": 519, "NUMERIC_8": 520, "NUMERIC_9": 521,
 }
 
+// androidKeys are the Android key codes of the keys a smooth binding can press (Android's Generic.kl): a watching
+// daemon presses them through Android's input injection, which takes Android codes.
+var androidKeys = map[uint16]int{
+	114: 25, 115: 24, // VOLUMEDOWN, VOLUMEUP
+	402: 166, 403: 167, // CHANNELUP, CHANNELDOWN
+	103: 19, 108: 20, 105: 21, 106: 22, // DPAD UP, DOWN, LEFT, RIGHT
+}
+
 // Binding is what one remote key does. A key with no binding passes through to Android unchanged.
 type Binding struct {
 	// Smooth sends a held key as separate presses, so Android takes one step per press instead of its
@@ -71,6 +79,9 @@ func ParseConfig(r io.Reader) (*Config, error) {
 			if command != "" {
 				return nil, fmt.Errorf("line %d: smooth takes no command", n)
 			}
+			if _, ok := androidKeys[code]; !ok {
+				return nil, fmt.Errorf("line %d: smooth works on volume, channel and arrow keys only", n)
+			}
 			b.Smooth = true
 		case "tap", "repeat", "hold":
 			if command == "" {
@@ -92,6 +103,15 @@ func ParseConfig(r io.Reader) (*Config, error) {
 		}
 	}
 	return cfg, scan.Err()
+}
+
+func (c *Config) hasSmooth() bool {
+	for _, b := range c.Bindings {
+		if b.Smooth {
+			return true
+		}
+	}
+	return false
 }
 
 func keyCode(name string) (uint16, error) {

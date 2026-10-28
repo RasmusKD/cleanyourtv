@@ -13,8 +13,9 @@ type record []string
 func (r *record) Forward(code uint16, value int32) {
 	*r = append(*r, fmt.Sprintf("fwd %d %d", code, value))
 }
-func (r *record) Press(code uint16)  { *r = append(*r, fmt.Sprintf("press %d", code)) }
-func (r *record) Run(command string) { *r = append(*r, "run "+command) }
+func (r *record) Press(code uint16)   { *r = append(*r, fmt.Sprintf("press %d", code)) }
+func (r *record) Release(code uint16) { *r = append(*r, fmt.Sprintf("release %d", code)) }
+func (r *record) Run(command string)  { *r = append(*r, "run "+command) }
 
 const sample = `
 # comment
@@ -26,14 +27,16 @@ CHANNELDOWN hold am start -n x/.Y
 GREEN tap am start -n hue/.Low
 `
 
-func machine(t *testing.T) (*Machine, *record) {
+func machine(t *testing.T) (*Machine, *record) { return machineIn(t, false) }
+
+func machineIn(t *testing.T, watch bool) (*Machine, *record) {
 	t.Helper()
 	cfg, err := ParseConfig(strings.NewReader(sample))
 	if err != nil {
 		t.Fatal(err)
 	}
 	r := &record{}
-	return NewMachine(cfg, r), r
+	return NewMachine(cfg, r, watch), r
 }
 
 func TestParse(t *testing.T) {
@@ -82,8 +85,8 @@ func TestHeldVolumeIsSinglePresses(t *testing.T) {
 	}
 	m.Key(115, 0, t0.Add(650*time.Millisecond))
 	m.Tick(t0.Add(time.Second))
-	// the press, one at 400 ms, then every 120 ms: 520, 640
-	if len(*r) != 4 || (*r)[0] != "press 115" {
+	// the press, one at 300 ms, then every 60 ms up to 600
+	if len(*r) != 7 || (*r)[0] != "press 115" {
 		t.Fatal(*r)
 	}
 }
@@ -115,5 +118,33 @@ func TestRepeatWhileHeld(t *testing.T) {
 	}
 	if !m.Next().IsZero() {
 		t.Fatal("work left after release")
+	}
+}
+
+func TestWatchedHeldVolumeStopsAndroidRepeat(t *testing.T) {
+	m, r := machineIn(t, true)
+	t0 := time.Now()
+	m.Key(115, 1, t0)
+	for at := t0; at.Before(t0.Add(650 * time.Millisecond)); at = at.Add(10 * time.Millisecond) {
+		m.Tick(at)
+	}
+	m.Key(115, 0, t0.Add(650*time.Millisecond))
+	m.Tick(t0.Add(time.Second))
+	// Android's own press, its repeat ended at 250 ms, presses every 60 ms from 300 to 600
+	want := []string{"release 115", "press 115", "press 115", "press 115", "press 115", "press 115", "press 115"}
+	if !reflect.DeepEqual([]string(*r), want) {
+		t.Fatal(*r)
+	}
+}
+
+func TestWatchedQuickVolumeTapAddsNothing(t *testing.T) {
+	m, r := machineIn(t, true)
+	t0 := time.Now()
+	m.Key(115, 1, t0)
+	m.Tick(t0.Add(100 * time.Millisecond))
+	m.Key(115, 0, t0.Add(150*time.Millisecond))
+	m.Tick(t0.Add(time.Second))
+	if len(*r) != 0 {
+		t.Fatal(*r)
 	}
 }

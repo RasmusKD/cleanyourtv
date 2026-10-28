@@ -11,6 +11,7 @@ without one the launcher sees buttons only on Home. The daemon reads below Andro
 ```
 # <key> <kind> [command]; key is a name below or the Linux key code from `getevent -l`
 sh bl() { ... }                 # run once in the action shell: helper functions
+VOLUMEUP    smooth              # held: one step per press instead of the TV's accelerated repeat
 CHANNELUP   repeat bl 1         # runs on the press and again while held
 CHANNELDOWN tap    bl -1        # runs on the release when the key also has a hold command
 CHANNELDOWN hold   app io.github.luyzfernando08.sleeptimer/.BedtimeActivity
@@ -25,6 +26,12 @@ with `tools/tv.py 'getevent -l'` while pressing (the Prosonic's Netflix button i
 
 The TV still does what a button normally does as well: P+ also changes the channel in Live TV, and a Netflix
 button still tries Netflix, which fails quietly when Netflix is disabled.
+
+`smooth` (volume, channel and arrow keys) fixes held volume on Vestel, whose `AudioService` moves a repeated volume
+key by `sys.repeated_key_vol_steps` (3, a system property the shell cannot set). The press itself reaches Android as
+always; after 250 ms the daemon sends an up for the key from the remote's own device id, which ends Android's repeat
+before it starts, and from 300 ms adds single presses every 60 ms. It presses through the starter app's `Inject`
+class, run as the shell user with `app_process` (the shell may inject input).
 
 ## Install
 
@@ -43,15 +50,14 @@ run the install again.
 ## Full mode
 
 `install.sh <config> full` makes the daemon take the remote over and pass its buttons on through a `uinput`
-copy, so bound buttons stop doing their own thing and `smooth` keys (`VOLUMEUP smooth`) reach Android as separate
-presses, one volume step each where a held key jumps three. Try it only on a TV you can restart: creating the copy
-crashed and rebooted the Prosonic BODRUM (MediaTek, Android 14) every time, so it stays in the default `watch` mode.
+copy, so bound buttons stop doing their own thing. Try it only on a TV you can restart: creating the copy crashed
+and rebooted the Prosonic BODRUM (MediaTek, Android 14) every time, so it stays in the default `watch` mode.
 
 ## Permissions
 
 | What | Why |
 |---|---|
-| ADB shell user (the daemon) | Reads the remote's input device and runs the bound commands. Started over ADB; it can do what `adb shell` can. |
+| ADB shell user (the daemon) | Reads the remote's input device, runs the bound commands and injects smooth keys' presses. Started over ADB; it can do what `adb shell` can. |
 | `INTERNET` (the starter) | Only 127.0.0.1:5555, the TV's own ADB port, to start the daemon. |
 | `RECEIVE_BOOT_COMPLETED` | Starting the daemon after a reboot. |
 

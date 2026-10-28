@@ -1,7 +1,7 @@
-// remote-daemon takes the TV remote's input device for itself and stands a copy of it up through uinput: every key
-// it has no binding for goes to Android through the copy unchanged, bound keys run shell commands instead, and
-// smooth keys reach Android as separate presses. It runs as the ADB shell user, whose input and uhid groups give it
-// both devices; no root.
+// remote-daemon reads the TV remote's input device and runs shell commands for bound keys; smooth keys reach Android
+// as separate presses. In watch mode (the default) Android reads the remote too and the daemon presses smooth keys
+// through Android's input injection; in full mode it takes the remote for itself and passes every key on through a
+// uinput copy. It runs as the ADB shell user, whose input and uhid groups give it both devices; no root.
 //
 // When the daemon exits, for any reason, the kernel ends its grab and the remote works as before.
 package main
@@ -124,6 +124,9 @@ func cloneDevice(src *os.File, name string) (*os.File, error) {
 type uinputOut struct {
 	dev *os.File
 	sh  io.Writer
+	// inject is the starter app's Inject helper, which presses keys through Android's input injection: how a
+	// watching daemon, holding no copy of the remote, adds presses (nil when no key is smooth)
+	inject io.Writer
 }
 
 func (o *uinputOut) write(typ, code uint16, value int32) {
@@ -145,8 +148,45 @@ func (o *uinputOut) Forward(code uint16, value int32) {
 }
 
 func (o *uinputOut) Press(code uint16) {
+	if o.dev == nil {
+		o.injectKey("p", code)
+		return
+	}
 	o.Forward(code, 1)
 	o.Forward(code, 0)
+}
+
+// Release only matters when watching: holding the remote, Android never saw the key go down.
+func (o *uinputOut) Release(code uint16) {
+	if o.dev == nil {
+		o.injectKey("u", code)
+	}
+}
+
+func (o *uinputOut) injectKey(action string, code uint16) {
+	if o.inject == nil {
+		return
+	}
+	if _, err := fmt.Fprintf(o.inject, "%s %d\n", action, androidKeys[code]); err != nil {
+		log.Printf("inject: %v", err)
+	}
+}
+
+// startInject runs the starter app's Inject class as this (shell) user through app_process. If it dies, smooth keys
+// fall back to Android's own repeat and every other binding keeps working.
+func startInject(device string) (io.Writer, error) {
+	cmd := exec.Command("/system/bin/sh", "-c", `CLASSPATH="$(pm path io.github.rasmuskd.remotedaemon | sed -n 's/^package://p')" `+
+		`exec app_process / io.github.rasmuskd.remotedaemon.Inject "$1"`, "inject", device)
+	in, err := cmd.StdinPipe()
+	if err != nil {
+		return nil, err
+	}
+	cmd.Stdout, cmd.Stderr = os.Stderr, os.Stderr
+	if err := cmd.Start(); err != nil {
+		return nil, err
+	}
+	go func() { log.Printf("inject helper ended: %v", cmd.Wait()) }()
+	return in, nil
 }
 
 func (o *uinputOut) Run(command string) {
@@ -159,7 +199,7 @@ func (o *uinputOut) Run(command string) {
 func main() {
 	device := flag.String("device", "IR Receiver", "part of the remote's input device name")
 	mode := flag.String("mode", "full", "full: take the remote and pass its keys on through a copy; "+
-		"watch: only read it, so bound keys also keep their own function and smooth keys do nothing; "+
+		"watch: only read it, so bound keys also keep their own function and smooth keys go through Android's input injection; "+
 		"clone-only and grab-only: one half of full, for finding which one a TV does not take")
 	flag.Parse()
 	switch *mode {
@@ -216,6 +256,11 @@ func main() {
 		log.Fatalf("action shell ended: %v", sh.Wait())
 	}()
 	out := &uinputOut{dev: dst, sh: shIn}
+	if dst == nil && cfg.hasSmooth() {
+		if out.inject, err = startInject(*device); err != nil {
+			log.Printf("inject helper: %v; smooth keys keep Android's own repeat", err)
+		}
+	}
 	for _, line := range cfg.Init {
 		out.Run(line)
 	}
@@ -242,7 +287,8 @@ func main() {
 		}
 	}()
 
-	m := NewMachine(cfg, out)
+	// a watching daemon whose helper failed adds nothing to smooth keys: Android's own repeat must then run on
+	m := NewMachine(cfg, out, dst == nil && out.inject != nil)
 	timer := time.NewTimer(time.Hour)
 	for {
 		if next := m.Next(); next.IsZero() {
