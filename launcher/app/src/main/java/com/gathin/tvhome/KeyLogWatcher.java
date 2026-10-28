@@ -53,7 +53,12 @@ final class KeyLogWatcher {
     private static final Pattern SYSTEM_LINE =
             Pattern.compile("^\\s*(\\d{1,12})\\.(\\d{3}) [VDIWEF]/[^(]*\\(\\s*1000:\\s*\\d+\\): (.*)$");
     private static final Pattern KEY = Pattern.compile("interceptKeyTi keyCode=(\\d{1,9}) down=(true|false)\\b");
-    /** A start the activity manager refused (a negative result code), and the package it was aimed at. */
+    /**
+     * A start the activity manager refused (a negative result code), and the package it was aimed at. The system
+     * writes the line, but its intent text is the starting app's own, and a newline in it prints as a line of its
+     * own under the system's prefix: any app can still make such a line appear. The most it gets is the owner's
+     * configured follow-up app opening.
+     */
     private static final Pattern START_FAILED =
             Pattern.compile("START u\\d+ \\{.*?\\b(?:pkg|cmp)=([A-Za-z][A-Za-z0-9_.]*)[/ }].*result code=-\\d+");
     private static final String LAUNCH_PREFIX = "launch:";
