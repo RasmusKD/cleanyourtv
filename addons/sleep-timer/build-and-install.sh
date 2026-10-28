@@ -9,6 +9,8 @@
 set -euo pipefail
 HERE="$(cd "$(dirname "$0")" && pwd)"
 TOOLS="$HERE/../../tools"
+# Windows Python gets every path below, and with MSYS_NO_PATHCONV Git Bash would hand it /c/... unconverted
+if command -v cygpath >/dev/null 2>&1; then HERE="$(cygpath -m "$HERE")"; TOOLS="$(cygpath -m "$TOOLS")"; fi
 : "${TV_HOST:?set TV_HOST to the TV IP address, e.g. TV_HOST=192.168.1.50 $0}"
 PY="$TOOLS/venv/bin/python"
 [ -x "$PY" ] || PY="$TOOLS/venv/Scripts/python.exe"

@@ -205,6 +205,8 @@
         <item>KEYCODE_CHANNEL_DOWN:dimmer</item>
         <item>KEYCODE_PAGE_UP:brighter</item>
         <item>KEYCODE_PAGE_DOWN:dimmer</item>
+        <item>hold:KEYCODE_CHANNEL_DOWN:io.github.luyzfernando08.sleeptimer/.BedtimeActivity</item>
+        <item>hold:KEYCODE_PAGE_DOWN:io.github.luyzfernando08.sleeptimer/.BedtimeActivity</item>
         <item>KEYCODE_PROG_RED:io.github.rasmuskd.huekeys/.Toggle</item>
         <item>KEYCODE_PROG_GREEN:io.github.rasmuskd.huekeys/.Movie</item>
         <item>KEYCODE_PROG_YELLOW:io.github.rasmuskd.huekeys/.Brighter</item>

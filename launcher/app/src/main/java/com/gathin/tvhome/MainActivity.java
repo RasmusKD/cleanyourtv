@@ -389,6 +389,7 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
     };
 
     private java.util.Map<Integer, String> homeAppKeys = java.util.Collections.emptyMap();
+    private java.util.Map<Integer, String> homeHoldAppKeys = java.util.Collections.emptyMap();
     /** config tcl_t_key: TKeyActivity answers the T button, so Home leaves its keycode alone. */
     private boolean tclTKey;
     /** key_filter: the key services run app_keys; without it Home runs them itself while in front. */
@@ -402,6 +403,7 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
         // config.xml, overlaid by config.json from a pushed theme (see Config and tools/theme.sh).
         Config cfg = Config.load(this);
         homeAppKeys = RemoteKeys.parseAppKeys(cfg.appKeys);
+        homeHoldAppKeys = RemoteKeys.parseHoldAppKeys(cfg.appKeys);
         appLibrarySelection = cfg.appLibrarySelection;
         libraryOkOpens = cfg.libraryOkOpens;
         // restore_key_services: after a force stop, put back the remote's accessibility helpers that Android took
@@ -1284,7 +1286,8 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
         // tcl_t_key: TKeyActivity runs the T button's entry, started by TCL's key service on the same press
         if (TKeyActivity.answers(tclTKey, event.getKeyCode(), homeAppKeys)) return true;
         // without key_filter no key service runs app_keys, so Home runs every entry while it is in front
-        if ((event.getKeyCode() >= 1000 || !keyFilter) && RemoteKeys.handle(this, event, homeAppKeys.get(event.getKeyCode()), null)) return true;
+        if ((event.getKeyCode() >= 1000 || !keyFilter) && RemoteKeys.handle(this, event,
+                homeAppKeys.get(event.getKeyCode()), homeHoldAppKeys.get(event.getKeyCode()))) return true;
         if (handleSettingsKey(event)) return true;
         if (tileMenuEnabled && !reordering && openPopup == null && cardPrompt == null
                 && event.getKeyCode() == KeyEvent.KEYCODE_MENU) {
