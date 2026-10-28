@@ -9,13 +9,15 @@
 #        [-HomeKeyService]    remotes whose Home button sends KEYCODE_ALL_APPS (Xiaomi sticks)
 #        [-RestoreKeyServices] grants WRITE_SECURE_SETTINGS for restore_key_services (helpers back after a force stop)
 #        [-VendorKeyLog]      grants READ_LOGS for vendor_key_log (vendor buttons only the focused window receives)
+#        [-BacklightKeys]     grants WRITE_SECURE_SETTINGS for the brighter and dimmer app_keys actions
 param(
     [string]$TvHost = $env:TV_HOST,
     [string]$StockLauncher = '',
     [switch]$InputKeyService,
     [switch]$HomeKeyService,
     [switch]$RestoreKeyServices,
-    [switch]$VendorKeyLog
+    [switch]$VendorKeyLog,
+    [switch]$BacklightKeys
 )
 $ErrorActionPreference = 'Stop'
 # Pipe plain UTF-8 to native commands; the default here prepends a BOM that corrupts the first command.
@@ -153,7 +155,7 @@ function Enable-Service([string]$Name) {
 }
 if ($InputKeyService) { Enable-Service 'InputKeyService' }
 if ($HomeKeyService) { Enable-Service 'HomeKeyService' }
-if ($RestoreKeyServices) {
+if ($RestoreKeyServices -or $BacklightKeys) {
     'pm grant com.gathin.tvhome android.permission.WRITE_SECURE_SETTINGS && echo restore-granted' | & $py -I ..\tools\tv.py --batch
 }
 if ($VendorKeyLog) {

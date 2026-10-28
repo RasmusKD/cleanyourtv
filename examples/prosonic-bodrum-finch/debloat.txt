@@ -35,6 +35,11 @@
 # "launch:com.amazon.amazonvideo.livingroom:<app>", vendor_key_log on and key_filter off: any key-filtering helper
 # kills the held-volume ramp here, and filtered volume keys never reach the helper, so consume_volume_keys cannot
 # bring it back. Android 14 asks "Allow access to all device logs?" over Home once per boot; allow it.
+#
+# Backlight: Settings.Global picture_backlight (0 to 100) is the picture settings' Backlight slider, and
+# com.mediatek.tv.service (TVMenuSettingsService) pushes every change of it to the panel. The app_keys actions
+# "brighter" and "dimmer" step it; P+/P- do that on Home (BACKLIGHT_KEYS=1 grants WRITE_SECURE_SETTINGS). Inside
+# other apps the keys would need key_filter, which costs the held-volume ramp.
 
 # Vestel telemetry, logging and "cleaner"
 com.vestel.vestelreporter

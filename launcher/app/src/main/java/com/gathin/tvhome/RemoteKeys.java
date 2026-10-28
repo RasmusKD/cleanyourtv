@@ -292,14 +292,14 @@ final class RemoteKeys {
     static boolean isAction(String target) {
         switch (target) {
             case "back": case "home": case "recents": case "mute": case "sleep":
-            case "screensaver": case "settings": case "wifi":
+            case "screensaver": case "settings": case "wifi": case "brighter": case "dimmer":
                 return true;
             default:
                 return false;
         }
     }
 
-    /** Runs an action word; false for an app or an input. Needs no permission the launcher does not already have. */
+    /** Runs an action word; false for an app or an input. Only brighter and dimmer need a grant (Backlight). */
     private static boolean runAction(Context ctx, String target) {
         if (!isAction(target)) return false;
         int global = globalAction(target, Build.VERSION.SDK_INT);
@@ -327,6 +327,12 @@ final class RemoteKeys {
                 break;
             case "wifi":
                 start(ctx, SystemSettings.intent(ctx, Settings.ACTION_WIFI_SETTINGS));
+                break;
+            case "brighter":
+                Backlight.step(ctx, 1);
+                break;
+            case "dimmer":
+                Backlight.step(ctx, -1);
                 break;
             default:
                 break;   // "sleep" below Android 9: consumed, nothing to do

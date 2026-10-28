@@ -204,6 +204,8 @@ esac
 #                         theme) Home puts these helpers back after a force stop of the launcher
 #   VENDOR_KEY_LOG=1      grants READ_LOGS, so that with vendor_key_log (config.xml or a theme) InputKeyService opens
 #                         app_keys for vendor buttons (keycode 1000 and up) that only the focused window receives
+#   BACKLIGHT_KEYS=1      grants WRITE_SECURE_SETTINGS, so that the brighter and dimmer app_keys actions can step the
+#                         backlight (Settings.Global picture_backlight on MediaTek sets)
 # TCL firmware (TclAppBoot) refuses to bind an app's accessibility service while the app is not running unless it
 # holds the AUTO_START app-op, so grant it first; other TVs do not know the op and ignore it. Builds name it
 # AUTO_START (G08, AU02) or APP_AUTO_START (G10), so set both. App-ops reach the disk lazily: without
@@ -217,7 +219,7 @@ enable_service() {   # appends to enabled_accessibility_services without droppin
 }
 if [ "${INPUT_KEY_SERVICE:-0}" = 1 ]; then enable_service InputKeyService; fi
 if [ "${HOME_KEY_SERVICE:-0}" = 1 ]; then enable_service HomeKeyService; fi
-if [ "${RESTORE_KEY_SERVICES:-0}" = 1 ]; then
+if [ "${RESTORE_KEY_SERVICES:-0}" = 1 ] || [ "${BACKLIGHT_KEYS:-0}" = 1 ]; then
   "$PY" -I ../tools/tv.py "pm grant com.gathin.tvhome android.permission.WRITE_SECURE_SETTINGS && echo restore-granted"
 fi
 if [ "${VENDOR_KEY_LOG:-0}" = 1 ]; then

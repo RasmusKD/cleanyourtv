@@ -391,6 +391,8 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
     private java.util.Map<Integer, String> homeAppKeys = java.util.Collections.emptyMap();
     /** config tcl_t_key: TKeyActivity answers the T button, so Home leaves its keycode alone. */
     private boolean tclTKey;
+    /** key_filter: the key services run app_keys; without it Home runs them itself while in front. */
+    private boolean keyFilter;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -408,6 +410,7 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
         settingsRevision = settingsRevision();
         applyComponent(InputsRequestActivity.class, cfg.handleViewInputs);
         tclTKey = cfg.tclTKey;
+        keyFilter = cfg.keyFilter;
         applyComponent(TKeyActivity.class, tclTKey);
         settingsKeycodes = cfg.settingsKeycodes;
         settingsKeyPanel = cfg.settingsKeyPanel;
@@ -1280,7 +1283,8 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
         if (KeyLogWatcher.covers(event.getKeyCode())) return true;
         // tcl_t_key: TKeyActivity runs the T button's entry, started by TCL's key service on the same press
         if (TKeyActivity.answers(tclTKey, event.getKeyCode(), homeAppKeys)) return true;
-        if (event.getKeyCode() >= 1000 && RemoteKeys.handle(this, event, homeAppKeys.get(event.getKeyCode()), null)) return true;
+        // without key_filter no key service runs app_keys, so Home runs every entry while it is in front
+        if ((event.getKeyCode() >= 1000 || !keyFilter) && RemoteKeys.handle(this, event, homeAppKeys.get(event.getKeyCode()), null)) return true;
         if (handleSettingsKey(event)) return true;
         if (tileMenuEnabled && !reordering && openPopup == null && cardPrompt == null
                 && event.getKeyCode() == KeyEvent.KEYCODE_MENU) {
