@@ -18,7 +18,8 @@ button's `app_keys` entry starts, which sends one request and finishes.
 ```
 
 In the launcher's `app_keys` (config.xml or a theme). Like every `app_keys` entry, the buttons work on Home, and
-everywhere only where the launcher's key services filter keys.
+everywhere only where the launcher's key services filter keys. [Remote Daemon](../remote-daemon/) runs them from
+every app, and with the TV in standby: `GREEN tap app io.github.rasmuskd.huekeys/.Low`.
 
 ## Setup
 

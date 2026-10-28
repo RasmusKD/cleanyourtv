@@ -198,19 +198,8 @@
          "front:172:guide:com.vt.tv.tvcenter" makes the Hisense hengshan Live TV button open Live TV, then its guide,
          where the firmware hands KEYCODE_GUIDE (172) to the stock launcher and no app ever receives it. Leave empty
          to omit. -->
+    <!-- Empty on the Prosonic: addons/remote-daemon handles its buttons from every app (prosonic.conf). -->
     <string-array name="app_keys" translatable="false">
-        <item>launch:com.netflix.ninja:com.viu.viuapp</item>
-        <item>launch:com.amazon.amazonvideo.livingroom:com.crunchyroll.crunchyroid</item>
-        <item>KEYCODE_CHANNEL_UP:brighter</item>
-        <item>KEYCODE_CHANNEL_DOWN:dimmer</item>
-        <item>KEYCODE_PAGE_UP:brighter</item>
-        <item>KEYCODE_PAGE_DOWN:dimmer</item>
-        <item>hold:KEYCODE_CHANNEL_DOWN:io.github.luyzfernando08.sleeptimer/.BedtimeActivity</item>
-        <item>hold:KEYCODE_PAGE_DOWN:io.github.luyzfernando08.sleeptimer/.BedtimeActivity</item>
-        <item>KEYCODE_PROG_RED:io.github.rasmuskd.huekeys/.Toggle</item>
-        <item>KEYCODE_PROG_GREEN:io.github.rasmuskd.huekeys/.Low</item>
-        <item>KEYCODE_PROG_YELLOW:io.github.rasmuskd.huekeys/.Half</item>
-        <item>KEYCODE_PROG_BLUE:io.github.rasmuskd.huekeys/.Full</item>
     </string-array>
     <!-- app_keys entries for vendor buttons (keycode 1000 and up) that reach only the focused window, so that not
          even InputKeyService sees them (the Netflix and T buttons on a TCL BeyondTV, Android TV 9): the system
@@ -220,7 +209,7 @@
          seconds if logcat ends, and only while this is true. Needs INPUT_KEY_SERVICE=1 and READ_LOGS, granted with
          VENDOR_KEY_LOG=1 (-VendorKeyLog on Windows) in build-and-install; without the grant the watcher does not
          start. Off by default. Also "vendor_key_log": true in a theme's config.json. -->
-    <bool name="vendor_key_log">true</bool>
+    <bool name="vendor_key_log">false</bool>
     <!-- The T button on TCL remotes (keycode 4020) runs its app_keys entry from any app, not only on Home. TCL's
          key service (com.tcl.keycustomfunctionservice) starts the action com.tcl.partnercustomizer.tkey on every
          press, whichever app is in front, while the key itself reaches only the focused window. On, Home turns
